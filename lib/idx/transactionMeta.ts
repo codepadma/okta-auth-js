@@ -15,10 +15,9 @@ import { warn } from '../util';
 import { getOAuthUrls } from '../oidc';
 
 // Calculate new values
-export async function createTransactionMeta(authClient: OktaAuth, options?: TransactionMetaOptions) {
+export async function createTransactionMeta(authClient: OktaAuth, options: TransactionMetaOptions = {}) {
   const tokenParams = await authClient.token.prepareTokenParams(options);
   const {
-    pkce,
     clientId,
     redirectUri,
     responseType,
@@ -32,12 +31,18 @@ export async function createTransactionMeta(authClient: OktaAuth, options?: Tran
     codeChallenge,
   } = tokenParams;
   const urls = getOAuthUrls(authClient, tokenParams);
-  const flow = authClient.idx.getFlow() || 'default';
+  let {
+    flow = 'default',
+    withCredentials = true,
+    activationToken,
+    recoveryToken
+  } = { ...authClient.options, ...options }; // local options override SDK options
   const issuer = authClient.options.issuer;
-  const meta = {
+
+  const meta: IdxTransactionMeta = {
+    withCredentials,
     flow,
     issuer,
-    pkce,
     clientId,
     redirectUri,
     responseType,
@@ -49,27 +54,27 @@ export async function createTransactionMeta(authClient: OktaAuth, options?: Tran
     ignoreSignature,
     codeVerifier,
     codeChallengeMethod,
-    codeChallenge 
+    codeChallenge,
+    activationToken,
+    recoveryToken
   };
   return meta;
 }
 
-export function transactionMetaExist(authClient: OktaAuth, options?: TransactionMetaOptions): boolean {
-  if (authClient.transactionManager.exists(options)) {
-    const existing = authClient.transactionManager.load(options) as IdxTransactionMeta;
-    if (isTransactionMetaValid(authClient, existing) && existing.interactionHandle) {
-      return true;
-    }
+export function hasSavedInteractionHandle(authClient: OktaAuth, options?: TransactionMetaOptions): boolean {
+  const savedMeta = getSavedTransactionMeta(authClient, options);
+  if (savedMeta?.interactionHandle) {
+    return true;
   }
   return false;
 }
 
-// Returns the saved transaction meta, if it exists and is valid, or undefined
+// Returns the saved transaction meta, if it exists and is valid
 export function getSavedTransactionMeta(authClient: OktaAuth, options?: TransactionMetaOptions): IdxTransactionMeta {
-  const state = options?.state || authClient.options.state;
-  const existing = authClient.transactionManager.load({ state }) as IdxTransactionMeta;
-  if (existing && isTransactionMetaValid(authClient, existing)) {
-    return existing;
+  options = { ...authClient.options, ...options }; // local options override SDK options
+  const savedMeta = authClient.transactionManager.load(options) as IdxTransactionMeta;
+  if (savedMeta && isTransactionMetaValid(savedMeta, options)) {
+    return savedMeta;
   }
 }
 
@@ -77,6 +82,7 @@ export async function getTransactionMeta(
   authClient: OktaAuth,
   options?: TransactionMetaOptions
 ): Promise<IdxTransactionMeta> {
+  options = { ...authClient.options, ...options }; // local options override SDK options
   // Load existing transaction meta from storage
   if (authClient.transactionManager.exists(options)) {
     const validExistingMeta = getSavedTransactionMeta(authClient, options);
@@ -93,31 +99,40 @@ export async function getTransactionMeta(
   return createTransactionMeta(authClient, options);
 }
 
-export function saveTransactionMeta (authClient: OktaAuth, meta) {
+export function saveTransactionMeta (authClient: OktaAuth, meta): void {
   authClient.transactionManager.save(meta, { muteWarning: true });
 }
 
-export function clearTransactionMeta (authClient: OktaAuth) {
+export function clearTransactionMeta (authClient: OktaAuth): void {
   authClient.transactionManager.clear();
 }
 
-// returns true if values in meta match current authClient options
-// eslint-disable-next-line complexity
-export function isTransactionMetaValid (authClient: OktaAuth, meta) {
-  // First validate against required config
-  const keys = ['issuer', 'clientId', 'redirectUri'];
-  if (keys.some(key => authClient.options[key] !== meta[key])) {
+export function isTransactionMetaValid (meta, options: TransactionMetaOptions  = {}): boolean {
+  // Validate against certain options. If these exist in options, they must match in meta
+  const keys = [
+    'issuer',
+    'clientId',
+    'redirectUri',
+    'state',
+    'codeChallenge',
+    'codeChallengeMethod',
+    'activationToken',
+    'recoveryToken'
+  ];
+  if (isTransactionMetaValidForOptions(meta, options, keys) === false) {
     return false;
   }
 
-  // Validate optional config
-  const { flow, state } = authClient.options;
-  
-  // If state is specified, it must match meta to be valid
-  if (state && state !== meta.state) {
+  // Validate configured flow
+  const { flow } = options;
+  if (isTransactionMetaValidForFlow(meta, flow) === false) {
     return false;
   }
 
+  return true;
+}
+
+export function isTransactionMetaValidForFlow(meta, flow) {
   // Specific flows should not share transaction data
   const shouldValidateFlow = flow && flow !== 'default' && flow !== 'proceed';
   if (shouldValidateFlow) {
@@ -126,6 +141,17 @@ export function isTransactionMetaValid (authClient: OktaAuth, meta) {
       return false;
     }
   }
-
   return true;
+}
+
+export function isTransactionMetaValidForOptions(meta, options, keys) {
+  // returns false if values in meta do not match options
+  // if the option does not have a value for a specific key, it is ignored
+  const mismatch = keys.some(key => {
+    const value = options[key];
+    if (value && value !== meta[key]) {
+      return true;
+    }
+  });
+  return !mismatch;
 }

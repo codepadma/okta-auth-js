@@ -67,7 +67,10 @@ export interface OktaAuthOptions extends CustomUrls {
   storageManager?: StorageManagerOptions;
   transactionManager?: TransactionManagerOptions;
   flow?: FlowIdentifier;
-
+  codeChallenge?: string;
+  codeChallengeMethod?: string;
+  recoveryToken?: string;
+  
   // For server-side web applications ONLY!
   clientSecret?: string;
 }

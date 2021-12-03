@@ -13,16 +13,18 @@ export interface FlowSpecification {
   remediators: RemediationFlow;
   flowMonitor: FlowMonitor;
   actions?: string[];
+  withCredentials?: boolean;
 }
 
-export function getFlowSpecification(oktaAuth: OktaAuth, flow: FlowIdentifier = 'proceed'): FlowSpecification {
-  let remediators, flowMonitor, actions;
+export function getFlowSpecification(oktaAuth: OktaAuth, flow: FlowIdentifier = 'default'): FlowSpecification {
+  let remediators, flowMonitor, actions, withCredentials = true;
   switch (flow) {
     case 'register':
     case 'signup':
     case 'enrollProfile':
       remediators = RegistrationFlow;
       flowMonitor = new RegistrationFlowMonitor(oktaAuth);
+      withCredentials = false;
       break;
     case 'recoverPassword':
     case 'resetPassword':
@@ -32,6 +34,7 @@ export function getFlowSpecification(oktaAuth: OktaAuth, flow: FlowIdentifier = 
         'currentAuthenticator-recover', 
         'currentAuthenticatorEnrollment-recover'
       ];
+      withCredentials = false;
       break;
     default:
       // authenticate
@@ -39,5 +42,5 @@ export function getFlowSpecification(oktaAuth: OktaAuth, flow: FlowIdentifier = 
       flowMonitor = new AuthenticationFlowMonitor(oktaAuth);
       break;
   }
-  return { flow, remediators, flowMonitor, actions };
+  return { flow, remediators, flowMonitor, actions, withCredentials };
 }

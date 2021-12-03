@@ -12,7 +12,7 @@
 
 
 import { run } from './run';
-import { transactionMetaExist } from './transactionMeta';
+import { hasSavedInteractionHandle } from './transactionMeta';
 import { startTransaction } from './startTransaction';
 import { 
   EnrollProfileValues,
@@ -21,7 +21,6 @@ import {
   AuthenticatorEnrollmentDataValues,
   SkipValues,
 } from './remediators';
-import { getFlowSpecification } from './flow';
 import { AuthSdkError } from '../errors';
 import { 
   IdxOptions, 
@@ -41,22 +40,22 @@ export type RegistrationOptions = IdxOptions
 export async function register(
   authClient: OktaAuth, options: RegistrationOptions = {}
 ): Promise<IdxTransaction> {
+
   // Only check at the beginning of the transaction
-  if (!transactionMetaExist(authClient)) {
-    const { enabledFeatures, availableSteps } = await startTransaction(authClient, { flow: 'register', ...options });
+  if (!hasSavedInteractionHandle(authClient)) {
+    const { enabledFeatures, availableSteps } = await startTransaction(authClient, { ...options, flow: 'register' });
     if (!options.activationToken && enabledFeatures && !enabledFeatures.includes(IdxFeature.REGISTRATION)) {
       const error = new AuthSdkError('Registration is not supported based on your current org configuration.');
-      return { status: IdxStatus.FAILURE, error };
+      return { status: IdxStatus.FAILURE, error } as unknown as IdxTransaction; // TODO: wny not just throw the error?
     }
     if (options.activationToken && availableSteps?.some(({ name }) => name === 'identify')) {
       const error = new AuthSdkError('activationToken is not supported based on your current org configuration.');
-      return { status: IdxStatus.FAILURE, error };
+      return { status: IdxStatus.FAILURE, error } as unknown as IdxTransaction; // TODO: wny not just throw the error?
     }
   }
 
-  const flowSpec = getFlowSpecification(authClient, 'register');
-  return run(authClient, { 
-    ...options, 
-    ...flowSpec
+  return run(authClient, {
+    ...options,
+    flow: 'register'
   });
 }

@@ -23,7 +23,8 @@ jest.mock('@okta/okta-idx-js', () => {
 
 jest.mock('../../../lib/idx/transactionMeta', () => {
   return {
-    getTransactionMeta: () => {},
+    createTransactionMeta: () => {},
+    getSavedTransactionMeta: () => {},
     saveTransactionMeta: () => {}
   };
 });
@@ -43,7 +44,8 @@ describe('idx/interact', () => {
       codeChallenge: 'meta-codeChallenge',
       codeChallengeMethod: 'meta-codeChallengeMethod'
     };
-    jest.spyOn(mocked.transactionMeta, 'getTransactionMeta').mockResolvedValue(transactionMeta);
+    jest.spyOn(mocked.transactionMeta, 'getSavedTransactionMeta').mockReturnValue(transactionMeta);
+    jest.spyOn(mocked.transactionMeta, 'createTransactionMeta').mockImplementation((authClient, options) => Promise.resolve(options));
     jest.spyOn(mocked.idx, 'interact').mockResolvedValue('idx-interactionHandle');
 
     testContext = {
@@ -76,6 +78,9 @@ describe('idx/interact', () => {
       expect(res).toEqual({
         'interactionHandle': 'idx-interactionHandle',
         'meta': {
+          'clientId': 'authClient-clientId',
+          'issuer': 'authClient-issuer',
+          'redirectUri': 'authClient-redirectUri',
           'codeChallenge': 'meta-codeChallenge',
           'codeChallengeMethod': 'meta-codeChallengeMethod',
           'codeVerifier': 'meta-codeVerifier',
@@ -104,6 +109,9 @@ describe('idx/interact', () => {
       expect(res).toEqual({
         'interactionHandle': 'idx-interactionHandle',
         'meta': {
+          'clientId': 'authClient-clientId',
+          'issuer': 'authClient-issuer',
+          'redirectUri': 'authClient-redirectUri',
           'codeChallenge': 'meta-codeChallenge',
           'codeChallengeMethod': 'meta-codeChallengeMethod',
           'codeVerifier': 'meta-codeVerifier',
@@ -134,6 +142,9 @@ describe('idx/interact', () => {
       expect(res).toEqual({
         'interactionHandle': 'idx-interactionHandle',
         'meta': {
+          'clientId': 'authClient-clientId',
+          'issuer': 'authClient-issuer',
+          'redirectUri': 'authClient-redirectUri',
           'codeChallenge': 'meta-codeChallenge',
           'codeChallengeMethod': 'meta-codeChallengeMethod',
           'codeVerifier': 'meta-codeVerifier',
@@ -163,6 +174,9 @@ describe('idx/interact', () => {
       expect(res).toEqual({
         'interactionHandle': 'idx-interactionHandle',
         'meta': {
+          'clientId': 'authClient-clientId',
+          'issuer': 'authClient-issuer',
+          'redirectUri': 'authClient-redirectUri',
           'codeChallenge': 'meta-codeChallenge',
           'codeChallengeMethod': 'meta-codeChallengeMethod',
           'codeVerifier': 'meta-codeVerifier',
@@ -171,6 +185,7 @@ describe('idx/interact', () => {
             'authClient',
           ],
           'state': 'authClient-state',
+          'activationToken': 'fn-activationToken'
         },
         'state': 'authClient-state',
       });
@@ -181,6 +196,9 @@ describe('idx/interact', () => {
       jest.spyOn(mocked.transactionMeta, 'saveTransactionMeta');
       await interact(authClient);
       expect(mocked.transactionMeta.saveTransactionMeta).toHaveBeenCalledWith(authClient, {
+        'clientId': 'authClient-clientId',
+        'issuer': 'authClient-issuer',
+        'redirectUri': 'authClient-redirectUri',
         'codeChallenge': 'meta-codeChallenge',
         'codeChallengeMethod': 'meta-codeChallengeMethod',
         'codeVerifier': 'meta-codeVerifier',

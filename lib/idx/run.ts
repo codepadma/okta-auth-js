@@ -14,8 +14,8 @@
 /* eslint-disable max-statements, complexity, max-depth */
 import { interact } from './interact';
 import { introspect } from './introspect';
-import { remediate } from './remediate';
-import { FlowMonitor, RemediationFlow } from './flow';
+import { remediate, RemediateOptions } from './remediate';
+import { getFlowSpecification } from './flow';
 import * as remediators from './remediators';
 import { AuthSdkError } from '../errors';
 import { 
@@ -30,11 +30,9 @@ import { IdxResponse, IdxRemediation } from './types/idx-js';
 import { getSavedTransactionMeta } from './transactionMeta';
 import { ProceedOptions  } from './proceed';
 
-export type RunOptions = ProceedOptions & {
+export type RunOptions = ProceedOptions & RemediateOptions & {
   flow?: FlowIdentifier;
-  remediators?: RemediationFlow;
-  flowMonitor?: FlowMonitor;
-  actions?: string[];
+  withCredentials?: boolean;
 }
 
 function getEnabledFeatures(idxResponse: IdxResponse): IdxFeature[] {
@@ -91,39 +89,48 @@ export async function run(
   let availableSteps;
   let status = IdxStatus.PENDING;
   let shouldClearTransaction = false;
+  let clearSharedStorage = true;
   let idxResponse;
   let interactionHandle;
   let metaFromResp;
 
   try {
 
-    const { flow, stateTokenExternalId, state } = options;
+    let { flow, flowMonitor, state, scopes, version, remediators, actions, withCredentials } = options;
 
     // Only one flow can be operating at a time
+    flow = flow || authClient.idx.getFlow();
     if (flow) {
       authClient.idx.setFlow(flow);
+      const flowSpec = getFlowSpecification(authClient, flow);
+      flowMonitor = flowSpec.flowMonitor;
+      // Favor option values over flow spec
+      withCredentials = (typeof withCredentials !== 'undefined') ? withCredentials : flowSpec.withCredentials;
+      remediators = remediators || flowSpec.remediators;
+      actions = actions || flowSpec.actions;
     }
 
     // Try to resume saved transaction
     metaFromResp = getSavedTransactionMeta(authClient, { state });
     interactionHandle = metaFromResp?.interactionHandle; // may be undefined
 
-    if (!interactionHandle && !stateTokenExternalId) {
+    if (!interactionHandle) {
       // start a new transaction
       authClient.transactionManager.clear();
-      const interactResponse = await interact(authClient, options); 
+      const interactResponse = await interact(authClient, { withCredentials, state, scopes }); 
       interactionHandle = interactResponse.interactionHandle;
       metaFromResp = interactResponse.meta;
+      withCredentials = metaFromResp.withCredentials;
     }
 
     // Introspect to get idx response
-    idxResponse = await introspect(authClient, { interactionHandle, stateTokenExternalId });
-
-    if (!options.remediators && !options.actions) {
+    idxResponse = await introspect(authClient, { withCredentials, version, interactionHandle });
+    enabledFeatures = getEnabledFeatures(idxResponse);
+    availableSteps = getAvailableSteps(idxResponse.neededToProceed);
+    
+    if (!remediators && !actions) {
       // handle start transaction
       meta = metaFromResp;
-      enabledFeatures = getEnabledFeatures(idxResponse);
-      availableSteps = getAvailableSteps(idxResponse.neededToProceed);
     } else {
       const values: remediators.RemediationValues = { 
         ...options, 
@@ -137,7 +144,7 @@ export async function run(
         terminal,
         canceled,
         messages: messagesFromResp,
-      } = await remediate(idxResponse, values, options);
+      } = await remediate(idxResponse, values, { remediators, actions, flowMonitor });
 
       // Track fields from remediation response
       nextStep = nextStepFromResp;
@@ -151,13 +158,14 @@ export async function run(
       if (terminal) {
         status = IdxStatus.TERMINAL;
         shouldClearTransaction = true;
+        clearSharedStorage = false; // transaction may be continued in another tab
       } if (canceled) {
         status = IdxStatus.CANCELED;
         shouldClearTransaction = true;
       } else if (idxResponseFromResp?.interactionCode) { 
         // Flows may end with interactionCode before the key remediation being hit
         // Double check if flow is finished to mitigate confusion with the wrapper methods
-        if (!(await options.flowMonitor.isFinished())) {
+        if (!(await flowMonitor.isFinished())) {
           throw new AuthSdkError('Current flow is not supported, check policy settings in your org.');
         }
 
@@ -189,11 +197,12 @@ export async function run(
   }
 
   if (shouldClearTransaction) {
-    authClient.transactionManager.clear();
+    authClient.transactionManager.clear({ clearSharedStorage });
   }
   
+  // from idx-js, used by the widget
+  const { actions, context, neededToProceed, proceed, rawIdxState } = idxResponse || {};
   return {
-    _idxResponse: idxResponse, 
     status,
     ...(meta && { meta }),
     ...(enabledFeatures && { enabledFeatures }),
@@ -202,5 +211,12 @@ export async function run(
     ...(nextStep && { nextStep }),
     ...(messages && { messages }),
     ...(error && { error }),
+
+    // from idx-js
+    actions,
+    context,
+    neededToProceed,
+    proceed,
+    rawIdxState,
   };
 }

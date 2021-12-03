@@ -14,8 +14,7 @@
 /* eslint-disable max-statements, max-depth, complexity */
 import { AuthSdkError } from '../errors';
 import { Remediator, RemediationValues } from './remediators';
-import { RemediationFlow } from './flow';
-import { RunOptions } from './run';
+import { FlowMonitor, RemediationFlow } from './flow';
 import { NextStep, IdxMessage } from './types';
 import { 
   IdxResponse,  
@@ -30,11 +29,17 @@ interface RemediationResponse {
   terminal?: boolean;
   canceled?: boolean;
 }
+export interface RemediateOptions {
+  remediators?: RemediationFlow;
+  actions?: string[];
+  flowMonitor?: FlowMonitor;
+}
+
 // Return first match idxRemediation in allowed remediators
 export function getRemediator(
   idxRemediations: IdxRemediation[],
   values: RemediationValues,
-  options: RunOptions,
+  options: RemediateOptions,
 ): Remediator {
   const { remediators, flowMonitor } = options;
 
@@ -48,15 +53,16 @@ export function getRemediator(
 
     const T = remediators[remediation.name];
     remediator = new T(remediation, values);
-    if (flowMonitor.isRemediatorCandidate(remediator, idxRemediations, values)) {
-      if (remediator.canRemediate()) {
-        // found the remediator
-        return remediator;
-      }
-      // remediator cannot handle the current values
-      // maybe return for next step
-      remediatorCandidates.push(remediator);  
+    if (flowMonitor && !flowMonitor.isRemediatorCandidate(remediator, idxRemediations, values)) {
+      continue;
     }
+    if (remediator.canRemediate()) {
+      // found the remediator
+      return remediator;
+    }
+    // remediator cannot handle the current values
+    // maybe return for next step
+    remediatorCandidates.push(remediator);
   }
 
   // TODO: why is it a problem to have multiple remediations? 
@@ -167,7 +173,7 @@ function removeActionFromValues(values) {
 export async function remediate(
   idxResponse: IdxResponse,
   values: RemediationValues,
-  options: RunOptions
+  options: RemediateOptions
 ): Promise<RemediationResponse> {
   let { neededToProceed, interactionCode } = idxResponse;
   const { remediators, flowMonitor } = options;

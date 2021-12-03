@@ -24,7 +24,8 @@ import {
 const mocked = {
   interact: require('../../../lib/idx/interact'),
   introspect: require('../../../lib/idx/introspect'),
-  remediate: require('../../../lib/idx/remediate')
+  remediate: require('../../../lib/idx/remediate'),
+  transactionMeta: require('../../../lib/idx/transactionMeta')
 };
 
 describe('idx/startTransaction', () => {
@@ -60,6 +61,7 @@ describe('idx/startTransaction', () => {
         clearIdxResponse: () => {}
       },
       idx: {
+        getFlow: () => {},
         setFlow: () => {}
       }
     };
@@ -72,7 +74,7 @@ describe('idx/startTransaction', () => {
     });
     jest.spyOn(mocked.introspect, 'introspect').mockResolvedValue(idxResponse);
     jest.spyOn(mocked.remediate, 'remediate').mockResolvedValue({});
-
+    jest.spyOn(mocked.transactionMeta, 'getSavedTransactionMeta').mockReturnValue(undefined);
     testContext = {
       issuer,
       clientId,

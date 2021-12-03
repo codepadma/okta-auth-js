@@ -29,10 +29,12 @@ import {
   CancelOptions,
   IdxOptions,
   IdxTransaction,
+  IdxTransactionMeta
 } from '../idx/types';
 import { InteractOptions, InteractResponse } from '../idx/interact';
 import { IntrospectOptions } from '../idx/introspect';
 import { IdxResponse } from '../idx/types/idx-js';
+import { TransactionMetaOptions } from './Transaction';
 export interface OktaAuth {
   options: OktaAuthOptions;
   userAgent: string;
@@ -111,11 +113,10 @@ export interface TokenParams extends CustomUrls {
   scopes?: string[];
   display?: string;
   ignoreSignature?: boolean;
-  codeChallengeMethod?: string;
   codeVerifier?: string;
   authorizationCode?: string;
   codeChallenge?: string;
-  grantType?: string;
+  codeChallengeMethod?: string;
   interactionCode?: string;
   idp?: string;
   idpScope?: string | string[];
@@ -264,6 +265,7 @@ export interface PkceAPI {
   computeChallenge(str: string): PromiseLike<any>;
 }
 
+
 export interface IdxAPI {
   interact: (options?: InteractOptions) => Promise<InteractResponse>;
   introspect: (options?: IntrospectOptions) => Promise<IdxResponse>;
@@ -272,9 +274,16 @@ export interface IdxAPI {
   poll: (options?: IdxPollOptions) => Promise<IdxTransaction>;
   proceed: (options?: ProceedOptions) => Promise<IdxTransaction>;
   cancel: (options?: CancelOptions) => Promise<IdxTransaction>;
-  startTransaction: (options?: IdxOptions) => Promise<IdxTransaction>;
+  start: (options?: IdxOptions) => Promise<IdxTransaction>;
+  startTransaction: (options?: IdxOptions) => Promise<IdxTransaction>; // alias, can be removed in next major version
   recoverPassword: (options?: PasswordRecoveryOptions) => Promise<IdxTransaction>;
   handleInteractionCodeRedirect: (url: string) => Promise<void>;
+  getSavedTransactionMeta: (options?: TransactionMetaOptions) => IdxTransactionMeta;
+  createTransactionMeta: (options?: TransactionMetaOptions) => Promise<IdxTransactionMeta>;
+  getTransactionMeta: (options?: TransactionMetaOptions) => Promise<IdxTransactionMeta>;
+  saveTransactionMeta: (meta: unknown) => void;
+  clearTransactionMeta: () => void;
+  isTransactionMetaValid: (meta: unknown) => boolean;
   getFlow(): FlowIdentifier;
   setFlow(flow: FlowIdentifier): void;
   canProceed(options?: { state?: string }): boolean;
