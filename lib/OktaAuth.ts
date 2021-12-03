@@ -117,6 +117,14 @@ import {
 import { createGlobalRequestInterceptor, setGlobalRequestInterceptor } from './idx/headers';
 import { OktaUserAgent } from './OktaUserAgent';
 import { parseOAuthResponseFromUrl } from './oidc/parseFromUrl';
+import {
+  getSavedTransactionMeta,
+  createTransactionMeta,
+  getTransactionMeta,
+  saveTransactionMeta,
+  clearTransactionMeta,
+  isTransactionMetaValid
+} from './idx/transactionMeta';
 
 const Emitter = require('tiny-emitter');
 
@@ -263,6 +271,7 @@ class OktaAuth implements SDKInterface, SigninAPI, SignoutAPI {
     });
 
     // IDX
+    const boundStartTransaction = startTransaction.bind(null, this);
     this.idx = {
       interact: interact.bind(null, this),
       introspect: introspectV2.bind(null, this),
@@ -273,7 +282,14 @@ class OktaAuth implements SDKInterface, SigninAPI, SignoutAPI {
       cancel: cancel.bind(null, this),
       recoverPassword: recoverPassword.bind(null, this),
       handleInteractionCodeRedirect: handleInteractionCodeRedirect.bind(null, this),
-      startTransaction: startTransaction.bind(null, this),
+      start: boundStartTransaction, // Alias
+      startTransaction: boundStartTransaction,
+      getSavedTransactionMeta: getSavedTransactionMeta.bind(null, this),
+      createTransactionMeta: createTransactionMeta.bind(null, this),
+      getTransactionMeta: getTransactionMeta.bind(null, this),
+      saveTransactionMeta: saveTransactionMeta.bind(null, this),
+      clearTransactionMeta: clearTransactionMeta.bind(null, this),
+      isTransactionMetaValid: isTransactionMetaValid.bind(null, this),
       setFlow: (flow: FlowIdentifier) => {
         this.options.flow = flow;
       },
@@ -282,6 +298,7 @@ class OktaAuth implements SDKInterface, SigninAPI, SignoutAPI {
       },
       canProceed: canProceed.bind(null, this),
     };
+
     setGlobalRequestInterceptor(createGlobalRequestInterceptor(this)); // to pass custom headers to IDX endpoints
 
     // HTTP

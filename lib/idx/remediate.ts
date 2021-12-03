@@ -14,9 +14,8 @@
 /* eslint-disable max-statements, max-depth, complexity */
 import { AuthSdkError } from '../errors';
 import { Remediator, RemediationValues } from './remediators';
-import { RemediationFlow } from './flow';
-import { RunOptions } from './run';
-import { NextStep, IdxMessage } from './types';
+import { FlowMonitor, RemediationFlow } from './flow';
+import { NextStep, IdxMessage, FlowIdentifier } from './types';
 import { 
   IdxResponse,  
   IdxRemediation,
@@ -30,11 +29,18 @@ interface RemediationResponse {
   terminal?: boolean;
   canceled?: boolean;
 }
+export interface RemediateOptions {
+  remediators?: RemediationFlow;
+  actions?: string[];
+  flow?: FlowIdentifier;
+  flowMonitor?: FlowMonitor;
+}
+
 // Return first match idxRemediation in allowed remediators
 export function getRemediator(
   idxRemediations: IdxRemediation[],
   values: RemediationValues,
-  options: RunOptions,
+  options: RemediateOptions,
 ): Remediator {
   const { remediators, flowMonitor } = options;
 
@@ -48,15 +54,16 @@ export function getRemediator(
 
     const T = remediators[remediation.name];
     remediator = new T(remediation, values);
-    if (flowMonitor.isRemediatorCandidate(remediator, idxRemediations, values)) {
-      if (remediator.canRemediate()) {
-        // found the remediator
-        return remediator;
-      }
-      // remediator cannot handle the current values
-      // maybe return for next step
-      remediatorCandidates.push(remediator);  
+    if (flowMonitor && !flowMonitor.isRemediatorCandidate(remediator, idxRemediations, values)) {
+      continue;
     }
+    if (remediator.canRemediate()) {
+      // found the remediator
+      return remediator;
+    }
+    // remediator cannot handle the current values
+    // maybe return for next step
+    remediatorCandidates.push(remediator);
   }
 
   // TODO: why is it a problem to have multiple remediations? 
@@ -167,10 +174,10 @@ function removeActionFromValues(values) {
 export async function remediate(
   idxResponse: IdxResponse,
   values: RemediationValues,
-  options: RunOptions
+  options: RemediateOptions
 ): Promise<RemediationResponse> {
   let { neededToProceed, interactionCode } = idxResponse;
-  const { remediators, flowMonitor } = options;
+  const { remediators, flow, flowMonitor } = options;
 
   // If the response contains an interaction code, there is no need to remediate
   if (interactionCode) {
@@ -208,7 +215,11 @@ export async function remediate(
   }
 
   const remediator = getRemediator(neededToProceed, values, options);
+  if (!remediator && flow === 'default') {
+    return { idxResponse };
+  }
 
+  // TODO: consider removing or loosening this error condition. We may receive unknown remediations in the future.
   if (!remediator) {
     throw new AuthSdkError(`
       No remediation can match current flow, check policy settings in your org.
@@ -216,7 +227,7 @@ export async function remediate(
     `);
   }
 
-  if (flowMonitor.loopDetected(remediator)) {
+  if (flowMonitor?.loopDetected(remediator)) {
     throw new AuthSdkError(`
       Remediation run into loop, break!!! remediation: ${remediator.getName()}
     `);
@@ -233,8 +244,11 @@ export async function remediate(
   const data = remediator.getData();
   try {
     idxResponse = await idxResponse.proceed(name, data);
+
     // Track succeed remediations in the current transaction
-    await flowMonitor.trackRemediations(name);
+    if (flowMonitor) {
+      await flowMonitor.trackRemediations(name);
+    }
 
     // Successfully get interaction code
     if (idxResponse.interactionCode) {

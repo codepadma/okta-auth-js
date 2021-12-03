@@ -71,6 +71,7 @@ describe('idx/poll', () => {
         exchangeCodeForTokens: () => Promise.resolve(tokenResponse)
       },
       idx: {
+        getFlow: () => {},
         setFlow: () => {}
       }
     };
@@ -159,8 +160,9 @@ describe('idx/poll', () => {
       .mockResolvedValueOnce(successCheckEmailResponse);
     jest.spyOn(enrollPollResponse, 'proceed');
 
-    const { nextStep } = await proceed(authClient, {});
-    const transaction = await poll(authClient, {refresh: nextStep.poll.refresh});
+    const res = await proceed(authClient, {});
+    const refresh = res.nextStep.poll.refresh;
+    const transaction = await poll(authClient, { refresh });
     expect(enrollPollResponse.proceed).toHaveBeenCalledTimes(3);
     expect(transaction.status).toEqual(IdxStatus.TERMINAL);
   });
