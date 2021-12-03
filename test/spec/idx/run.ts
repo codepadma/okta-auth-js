@@ -86,6 +86,7 @@ describe('idx/run', () => {
       state: 'abc',
       scopes: ['fooboo']
     };
+
     testContext = {
       idxResponse,
       remediateResponse,
@@ -118,6 +119,13 @@ describe('idx/run', () => {
       jest.spyOn(authClient.idx, 'setFlow');
       await run(authClient);
       expect(authClient.idx.setFlow).toHaveBeenCalledWith('existing');
+    });
+
+    it('retrieves flow specification based on flow option', async () => {
+      const { authClient } = testContext;
+      jest.spyOn(mocked.FlowSpecification, 'getFlowSpecification');
+      await run(authClient, { flow: 'signup' });
+      expect(mocked.FlowSpecification.getFlowSpecification).toHaveBeenCalledWith(authClient, 'signup');
     });
 
     it('retrieves flow specification based on flow option', async () => {
