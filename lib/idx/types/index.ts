@@ -76,6 +76,7 @@ export enum IdxFeature {
   PASSWORD_RECOVERY,
   REGISTRATION,
   SOCIAL_IDP,
+  ACCOUNT_UNLOCK
 }
 
 export interface IdxTransaction {

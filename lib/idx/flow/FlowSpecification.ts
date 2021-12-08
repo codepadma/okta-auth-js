@@ -6,6 +6,8 @@ import { PasswordRecoveryFlow } from './PasswordRecoveryFlow';
 import { PasswordRecoveryFlowMonitor } from './PasswordRecoveryFlowMonitor';
 import { RegistrationFlow } from './RegistrationFlow';
 import { RegistrationFlowMonitor } from './RegistrationFlowMonitor';
+import { AccountUnlockFlow } from './AccountUnlockFlow';
+import { AccountUnlockFlowMonitor } from './AccountUnlockFlowMonitor';
 import { RemediationFlow } from './RemediationFlow';
 
 export interface FlowSpecification {
@@ -35,6 +37,10 @@ export function getFlowSpecification(oktaAuth: OktaAuth, flow: FlowIdentifier = 
         'currentAuthenticatorEnrollment-recover'
       ];
       withCredentials = false;
+      break;
+    case 'unlockAccount':
+      remediators = AccountUnlockFlow;
+      flowMonitor = new AccountUnlockFlowMonitor(oktaAuth);
       break;
     default:
       // authenticate

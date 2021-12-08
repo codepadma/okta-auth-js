@@ -51,6 +51,10 @@ function getEnabledFeatures(idxResponse: IdxResponse): IdxFeature[] {
     res.push(IdxFeature.SOCIAL_IDP);
   }
 
+  if (neededToProceed.some(({ name }) => name === 'unlock-account')) {
+    res.push(IdxFeature.ACCOUNT_UNLOCK);
+  }
+
   return res;
 }
 

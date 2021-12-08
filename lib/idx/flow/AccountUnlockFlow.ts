@@ -10,14 +10,20 @@
  * See the License for the specific language governing permissions and limitations under the License.
  */
 
-export * from './AuthenticationFlow';
-export * from './AuthenticationFlowMonitor';
-export * from './FlowMonitor';
-export * from './FlowSpecification';
-export * from './PasswordRecoveryFlow';
-export * from './PasswordRecoveryFlowMonitor';
-export * from './RegistrationFlow';
-export * from './RegistrationFlowMonitor';
-export * from './AccountUnlockFlow';
-export * from './AccountUnlockFlowMonitor';
-export * from './RemediationFlow';
+
+import { RemediationFlow } from './RemediationFlow';
+import {
+  Identify,
+  UnlockAccount,
+  SelectAuthenticatorUnlockAccount,
+  SelectAuthenticatorAuthenticate,
+  ChallengeAuthenticator
+} from '../remediators';
+
+export const AccountUnlockFlow: RemediationFlow = {
+  'identify': Identify,
+  'unlock-account': UnlockAccount,
+  'select-authenticator-unlock-account': SelectAuthenticatorUnlockAccount,
+  'select-authenticator-authenticate': SelectAuthenticatorAuthenticate,
+  'challenge-authenticator': ChallengeAuthenticator,
+};
