@@ -11,11 +11,25 @@
  */
 
 
-import { SelectAuthenticator, SelectAuthenticatorValues } from './/Base/SelectAuthenticator';
+import { SelectAuthenticator, SelectAuthenticatorValues } from './Base/SelectAuthenticator';
+import { IdxRemediation } from '../types/idx-js';
+import { AuthenticatorKey, Authenticator } from '../types';
 
 export type SelectAuthenticatorAuthenticateValues = SelectAuthenticatorValues;
 
 export class SelectAuthenticatorAuthenticate extends SelectAuthenticator {
   static remediationName = 'select-authenticator-authenticate';
   values: SelectAuthenticatorAuthenticateValues;
+
+  constructor(remediation: IdxRemediation, values: SelectAuthenticatorValues = {}) {
+    super(remediation, values);
+
+    // Preset password authenticator to trigger recover action
+    if (values.flow === 'recoverPassword') {
+      this.values.authenticators = [
+        ...this.values.authenticators,
+        { key: AuthenticatorKey.OKTA_PASSWORD }
+      ] as Authenticator[];
+    }
+  }
 }

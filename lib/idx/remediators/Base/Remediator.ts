@@ -13,14 +13,14 @@
 
 /* eslint-disable complexity */
 import { AuthSdkError } from '../../../errors';
-import { NextStep, IdxMessage, Authenticator, Input } from '../../types';
+import { NextStep, IdxMessage, Authenticator, Input, IdxOptions } from '../../types';
 import { IdxAuthenticator, IdxRemediation } from '../../types/idx-js';
 import { getAllValues, getRequiredValues, titleCase } from '../util';
 
 // A map from IDX data values (server spec) to RemediationValues (client spec)
 export type IdxToRemediationValueMap = Record<string, string[]>;
 
-export interface RemediationValues {
+export interface RemediationValues extends IdxOptions {
   stateHandle?: string;
   authenticators?: Authenticator[] | string[];
 }
