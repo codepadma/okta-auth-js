@@ -214,7 +214,7 @@ export function hideConfig(): void {
 
 export function resetConfig(): void {
   clearStorage();
-  window.location.replace('/')
+  window.location.replace('/');
 }
 
 (window as any).resetConfig = makeClickHandler(resetConfig);

@@ -72,7 +72,12 @@ export function hasSavedInteractionHandle(authClient: OktaAuth, options?: Transa
 // Returns the saved transaction meta, if it exists and is valid
 export function getSavedTransactionMeta(authClient: OktaAuth, options?: TransactionMetaOptions): IdxTransactionMeta {
   options = { ...authClient.options, ...options }; // local options override SDK options
-  const savedMeta = authClient.transactionManager.load(options) as IdxTransactionMeta;
+  let savedMeta;
+  try {
+    savedMeta = authClient.transactionManager.load(options) as IdxTransactionMeta;
+  } catch (e) {
+    // ignore errors here
+  }
   if (savedMeta && isTransactionMetaValid(savedMeta, options)) {
     return savedMeta;
   }
