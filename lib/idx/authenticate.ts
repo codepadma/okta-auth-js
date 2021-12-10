@@ -15,6 +15,7 @@ import {
   OktaAuth,
   IdxOptions,
   IdxTransaction,
+  AuthenticatorKey
 } from '../types';
 import { run } from './run';
 import { 
@@ -37,8 +38,11 @@ export type AuthenticationOptions = IdxOptions
   & EnrollAuthenticatorValues;
 
 export async function authenticate(
-  authClient: OktaAuth, options: AuthenticationOptions
+  authClient: OktaAuth, options: AuthenticationOptions = {}
 ): Promise<IdxTransaction> {
+  if (options.password && !options.authenticator) {
+    options.authenticator = AuthenticatorKey.OKTA_PASSWORD;
+  }
   return run(authClient, { 
     ...options, 
     flow: 'authenticate'
