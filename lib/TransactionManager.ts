@@ -11,7 +11,6 @@
  */
 
 
-import { AuthSdkError } from './errors';
 import { REDIRECT_NONCE_COOKIE_NAME, REDIRECT_OAUTH_PARAMS_NAME, REDIRECT_STATE_COOKIE_NAME } from './constants';
 import StorageManager from './StorageManager';
 import {
@@ -254,10 +253,6 @@ export default class TransactionManager {
       }
     }
 
-    // If meta is not valid, throw an exception to avoid misleading server-side error
-    // The most likely cause of this error is trying to handle a callback twice
-    // eslint-disable-next-line max-len
-    throw new AuthSdkError('Could not load PKCE codeVerifier from storage. This may indicate the auth flow has already completed or multiple auth flows are executing concurrently.', null);
   }
 
   clearLegacyOAuthParams(): void {
@@ -297,12 +292,6 @@ export default class TransactionManager {
     if (isOAuthTransactionMeta(oauthParams)) {
       return oauthParams;
     }
-
-
-    throw new AuthSdkError('Unable to retrieve OAuth redirect params from storage');
-
-    // Something is there but we don't recognize it
-    // throw new AuthSdkError('Unable to parse the ' + REDIRECT_OAUTH_PARAMS_NAME + ' value from storage');
   }
 
   saveIdxResponse(idxResponse: RawIdxResponse): void {
