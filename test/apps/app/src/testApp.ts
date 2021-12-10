@@ -311,6 +311,7 @@ class TestApp {
     });
   }
 
+  // Usually the error should be thrown after rendering to prevent further renders
   renderError(e: Error): void {
     const xhrError = e && (e as any).xhr ? ((e as any).xhr.message || 'Network request failed') : '';
     this._setContent(`
@@ -318,7 +319,6 @@ class TestApp {
       <div id="xhr-error" style="color: red">${xhrError}</div>
       <hr/>
       ${homeLink(this)}
-      ${logoutLink(this)}
     `);
     this._afterRender('with-error');
   }
@@ -431,12 +431,12 @@ class TestApp {
   }
 
   async getTokensDirectOIE(username: string, password: string): Promise<Tokens>  {
-    let tokens;
     const idxTransaction: IdxTransaction = await this.oktaAuth.idx.authenticate({ username, password });
-    if (idxTransaction.status === IdxStatus.SUCCESS) {
-      tokens = idxTransaction.tokens;
-    } else {
-      this.renderError(new Error(JSON.stringify(idxTransaction.error)));
+    const { status, tokens, nextStep, error } = idxTransaction;
+    if (status !== IdxStatus.SUCCESS) {
+      const e = new Error(JSON.stringify({ status, nextStep, error }));
+      this.renderError(e);
+      throw e;
     }
     return tokens;
   }
@@ -449,7 +449,9 @@ class TestApp {
       if (v1Transaction.status === 'SUCCESS') {
         sessionToken = v1Transaction.sessionToken;
       } else {
-        this.renderError(new Error(`Transaction returned status: ${v1Transaction.status}`));
+        const error = new Error(`Transaction returned status: ${v1Transaction.status}`);
+        this.renderError(error);
+        throw error;
       }
     }
     // No username or password? try getWithoutPrompt
