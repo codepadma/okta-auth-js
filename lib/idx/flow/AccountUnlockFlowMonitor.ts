@@ -29,7 +29,7 @@ export class AccountUnlockFlowMonitor extends FlowMonitor {
 
     if (remediatorName === 'select-authenticator-authenticate' 
       && [
-        'identify',
+        'unlock-account',
         'select-authenticator-unlock-account',
         'challenge-authenticator'
       ].includes(prevRemediatorName)) {

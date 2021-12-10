@@ -13,7 +13,7 @@
 
 import { Factory } from 'fishery';
 import { IdxRemediationValue } from '../../../../lib/idx/types/idx-js';
-import { PasswordFormFactory } from './forms';
+import { PasswordFormFactory, VerifyPasscodeFormFactory } from './forms';
 
 export const IdxValueFactory = Factory.define<IdxRemediationValue>(() => {
   return {
@@ -33,6 +33,10 @@ export const CredentialsValueFactory = IdxValueFactory.params({
 
 export const PasswordValueFactory = CredentialsValueFactory.afterBuild(res => {
   res.form = PasswordFormFactory.build();
+});
+
+export const VerifyPasscodeValueFactor = CredentialsValueFactory.afterBuild(res => {
+  res.form = VerifyPasscodeFormFactory.build();
 });
 
 export const AuthenticatorValueFactory = IdxValueFactory.params({

@@ -11,11 +11,20 @@
  */
 
 
-import { SelectAuthenticator, SelectAuthenticatorValues } from './/Base/SelectAuthenticator';
+import { SelectAuthenticator, SelectAuthenticatorValues } from './Base/SelectAuthenticator';
 
-export type SelectAuthenticatorUnlockAccountValues = SelectAuthenticatorValues;
+export type SelectAuthenticatorUnlockAccountValues = SelectAuthenticatorValues & {
+  identifier?: string;
+};
 
 export class SelectAuthenticatorUnlockAccount extends SelectAuthenticator {
   static remediationName = 'select-authenticator-unlock-account';
   values: SelectAuthenticatorUnlockAccountValues;
+
+  canRemediate() {
+    // TODO:
+    const { identifier } = this.getData();
+    return !!identifier && super.canRemediate();
+    // return false;
+  }
 }

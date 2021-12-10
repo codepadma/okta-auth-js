@@ -331,3 +331,15 @@ export const EnrollPollRemediationFactory = IdxRemediationFactory.params({
   name: 'enroll-poll',
   refresh: 100
 });
+
+export const UnlockAccountRemediationFactory = IdxRemediationFactory.params({
+  name: 'unlock-account'
+});
+
+export const SelectAuthenticatorUnlockAccountRemediationFactory = IdxRemediationFactory.params({
+  name: 'select-authenticator-unlock-account',
+  value: [
+    UsernameValueFactory.build(),
+    AuthenticatorValueFactory.build()
+  ]
+});

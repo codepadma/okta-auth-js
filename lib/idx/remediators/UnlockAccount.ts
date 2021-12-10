@@ -11,11 +11,17 @@
  */
 
 
-import { VerifyAuthenticator, VerifyAuthenticatorValues } from './Base/VerifyAuthenticator';
+import { Remediator, RemediationValues } from './Base/Remediator';
 
-export type UnlockAccountValues = VerifyAuthenticatorValues;
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface UnlockAccountValues extends RemediationValues {}
 
-export class UnlockAccount extends VerifyAuthenticator {
+export class UnlockAccount extends Remediator {
   static remediationName = 'unlock-account';
+
   values: UnlockAccountValues;
+
+  canRemediate() {
+    return true;
+  }
 }
