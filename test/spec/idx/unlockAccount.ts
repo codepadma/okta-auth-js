@@ -12,7 +12,7 @@
 
 
 import { unlockAccount } from '../../../lib/idx/unlockAccount';
-import { IdxStatus } from '../../../lib/idx/types';
+import { IdxStatus, AuthenticatorKey } from '../../../lib/idx/types';
 import { AuthSdkError } from '../../../lib/errors';
 
 import {
@@ -27,6 +27,8 @@ import {
   ChallengeAuthenticatorRemediationFactory,
   AuthenticatorValueFactory,
   UsernameValueFactory,
+  VerifyEmailRemediationFactory,
+  VerifyEmailResponseFactory,
   VerifyPasscodeValueFactor,
   // AuthenticatorValueFactory,
   // OktaVerifyAuthenticatorOptionFactory,
@@ -116,26 +118,33 @@ describe('/idx/unlockAccout', () => {
       ]
     });
 
-    // select-authenticator-unlock-account
-    const selectAuthenticatorUnlockAccount = IdxResponseFactory.build({
-      neededToProceed: [
-        ChallengeAuthenticatorRemediationFactory.build({
-          value: [
-            VerifyPasscodeValueFactor.build(),
+    const selectAuthRem = SelectAuthenticatorAuthenticateRemediationFactory.build({
+      value: [
+        AuthenticatorValueFactory.build({
+          options: [
+            PhoneAuthenticatorOptionFactory.build(),
+            EmailAuthenticatorOptionFactory.build(),
           ]
-        }),
-        SelectAuthenticatorAuthenticateRemediationFactory.build({
-          value: [
-            AuthenticatorValueFactory.build({
-              options: [
-                PhoneAuthenticatorOptionFactory.build(),
-                EmailAuthenticatorOptionFactory.build(),
-              ]
-            })
-          ]
-        }),
+        })
       ]
-    });
+    })
+
+    // select-authenticator-unlock-account
+    // const selectAuthenticatorUnlockAccount = IdxResponseFactory.build({
+    //   neededToProceed: [
+    //     VerifyEmailRemediationFactory.build(),
+    //     SelectAuthenticatorAuthenticateRemediationFactory.build({
+    //       value: [
+    //         AuthenticatorValueFactory.build({
+    //           options: [
+    //             PhoneAuthenticatorOptionFactory.build(),
+    //             EmailAuthenticatorOptionFactory.build(),
+    //           ]
+    //         })
+    //       ]
+    //     }),
+    //   ]
+    // });
 
     const identifyResponse = IdxResponseFactory.build({
       neededToProceed: [
@@ -152,26 +161,27 @@ describe('/idx/unlockAccout', () => {
       ]
     });
 
+    // TODO: write this at test level
     // select-authenticator-authenticate
-    const selectAuthenticatorAuthenticate = IdxResponseFactory.build({
-      neededToProceed: [
-        ChallengeAuthenticatorRemediationFactory.build({
-          value: [
-            VerifyPasscodeValueFactor.build(),
-          ]
-        }),
-        SelectAuthenticatorAuthenticateRemediationFactory.build({
-          value: [
-            AuthenticatorValueFactory.build({
-              options: [
-                PhoneAuthenticatorOptionFactory.build(),
-                EmailAuthenticatorOptionFactory.build(),
-              ]
-            })
-          ]
-        }),
-      ]
-    });
+    // const selectAuthenticatorAuthenticate = IdxResponseFactory.build({
+    //   neededToProceed: [
+    //     ChallengeAuthenticatorRemediationFactory.build({
+    //       value: [
+    //         VerifyPasscodeValueFactor.build(),
+    //       ]
+    //     }),
+    //     SelectAuthenticatorAuthenticateRemediationFactory.build({
+    //       value: [
+    //         AuthenticatorValueFactory.build({
+    //           options: [
+    //             PhoneAuthenticatorOptionFactory.build(),
+    //             EmailAuthenticatorOptionFactory.build(),
+    //           ]
+    //         })
+    //       ]
+    //     }),
+    //   ]
+    // });
 
     // account reset response
     const accountResetTerminalResponse = RawIdxResponseFactory.build({
@@ -194,10 +204,11 @@ describe('/idx/unlockAccout', () => {
       transactionMeta,
       introspectResponse,
       unlockAccoutRemediationResponse,
-      selectAuthenticatorUnlockAccount,
+      // selectAuthenticatorUnlockAccount,
       identifyResponse,
-      selectAuthenticatorAuthenticate,
-      accountResetTerminalResponse
+      // selectAuthenticatorAuthenticate,
+      accountResetTerminalResponse,
+      selectAuthRem
     };
   });
 
@@ -236,27 +247,20 @@ describe('/idx/unlockAccout', () => {
     const { 
       authClient,
       introspectResponse,
-      unlockAccoutRemediationResponse,
-      selectAuthenticatorUnlockAccount,
-      accountResetTerminalResponse
+      unlockAccoutRemediationResponse
     } = testContext;
 
     chainResponses([
       introspectResponse,
-      unlockAccoutRemediationResponse,
-      selectAuthenticatorUnlockAccount,
-      accountResetTerminalResponse
+      unlockAccoutRemediationResponse
     ]);
 
     jest.spyOn(mocked.introspect, 'introspect')
       .mockResolvedValueOnce(introspectResponse)
       .mockResolvedValueOnce(unlockAccoutRemediationResponse)
-      .mockResolvedValueOnce(selectAuthenticatorUnlockAccount)
-      .mockResolvedValueOnce(accountResetTerminalResponse);
     
     jest.spyOn(introspectResponse, 'proceed');
     jest.spyOn(unlockAccoutRemediationResponse, 'proceed');
-    jest.spyOn(selectAuthenticatorUnlockAccount, 'proceed');
 
     let res = await unlockAccount(authClient, {});
     expect(introspectResponse.proceed).toHaveBeenCalledWith('unlock-account', { });
@@ -269,6 +273,10 @@ describe('/idx/unlockAccout', () => {
           {
             key: 'string',
             name: 'authenticator'
+          },
+          {
+            label: 'Username',
+            name: 'username'
           }
         ],
         options: [
@@ -290,40 +298,119 @@ describe('/idx/unlockAccout', () => {
       authClient,
       introspectResponse,
       unlockAccoutRemediationResponse,
-      selectAuthenticatorUnlockAccount,
-      accountResetTerminalResponse
+      accountResetTerminalResponse,
+      selectAuthRem
     } = testContext;
+
+    const selectAuthenticatorUnlockAccountResponse = IdxResponseFactory.build({
+      neededToProceed: [
+        VerifyEmailRemediationFactory.build(),
+        selectAuthRem,
+      ]
+    });
+
+    const verifyEmailResponse = VerifyEmailResponseFactory.build();
 
     chainResponses([
       introspectResponse,
       unlockAccoutRemediationResponse,
-      selectAuthenticatorUnlockAccount,
+      selectAuthenticatorUnlockAccountResponse,
+      verifyEmailResponse,
       accountResetTerminalResponse
     ]);
 
     jest.spyOn(mocked.introspect, 'introspect')
       .mockResolvedValueOnce(introspectResponse)
       .mockResolvedValueOnce(unlockAccoutRemediationResponse)
-      .mockResolvedValueOnce(selectAuthenticatorUnlockAccount)
+      .mockResolvedValueOnce(selectAuthenticatorUnlockAccountResponse)
+      .mockResolvedValueOnce(verifyEmailResponse)
       .mockResolvedValueOnce(accountResetTerminalResponse);
     
     jest.spyOn(introspectResponse, 'proceed');
     jest.spyOn(unlockAccoutRemediationResponse, 'proceed');
-    jest.spyOn(selectAuthenticatorUnlockAccount, 'proceed');
+    jest.spyOn(selectAuthenticatorUnlockAccountResponse, 'proceed');
+    jest.spyOn(verifyEmailResponse, 'proceed');
 
     let res = await unlockAccount(authClient, {});
-    expect(introspectResponse.proceed).toHaveBeenCalledWith('unlock-account', { });
+    expect(introspectResponse.proceed).toHaveBeenCalledWith('unlock-account', {});
 
     const inputValues = {
-      idenitifer: 'myname',
-      authenticator: 'email'
+      username: 'myname',
+      authenticator: AuthenticatorKey.OKTA_EMAIL
     };
-    // jest.spyOn(mocked.introspect, 'introspect').mockResolvedValueOnce(selectAuthenticatorUnlockAccount);
 
     res = await unlockAccount(authClient, inputValues);
-    expect(selectAuthenticatorUnlockAccount.proceed).toHaveBeenCalledWith('select-authenticator-unlock-account', {
+    expect(selectAuthenticatorUnlockAccountResponse.proceed).toHaveBeenCalledWith('select-authenticator-unlock-account', {
+      username: 'myname',
+      authenticator: AuthenticatorKey.OKTA_EMAIL
+    });
+
+    // expect(res).toEqual({
+    //   _idxResponse: expect.any(Object),
+    //   status: IdxStatus.PENDING,
+    //   nextStep: {
+    //     name: 'challenge-authenticator',
+    //     inputs: [],
+    //     // inputs: [{
+    //     //   name: 'authenticator',
+    //     //   key: 'string',
+    //     // }],
+    //     // options: [{
+    //     //   label: 'Password',
+    //     //   value: AuthenticatorKey.OKTA_PASSWORD
+    //     // }]
+    //   }
+    // });
+  });
+
+  it('can auto-remediate using username and email authenticator', async () => {
+    const { 
+      authClient,
+      introspectResponse,
+      unlockAccoutRemediationResponse,
+      accountResetTerminalResponse,
+      selectAuthRem
+    } = testContext;
+
+    const selectAuthenticatorUnlockAccountResponse = IdxResponseFactory.build({
+      neededToProceed: [
+        VerifyEmailRemediationFactory.build(),
+        selectAuthRem,
+      ]
+    });
+
+    const verifyEmailResponse = VerifyEmailResponseFactory.build();
+
+    chainResponses([
+      introspectResponse,
+      unlockAccoutRemediationResponse,
+      selectAuthenticatorUnlockAccountResponse,
+      verifyEmailResponse,
+      accountResetTerminalResponse
+    ]);
+
+    jest.spyOn(mocked.introspect, 'introspect')
+      .mockResolvedValueOnce(introspectResponse)
+      .mockResolvedValueOnce(unlockAccoutRemediationResponse)
+      .mockResolvedValueOnce(selectAuthenticatorUnlockAccountResponse)
+      .mockResolvedValueOnce(verifyEmailResponse)
+      .mockResolvedValueOnce(accountResetTerminalResponse);
+    
+    jest.spyOn(introspectResponse, 'proceed');
+    jest.spyOn(unlockAccoutRemediationResponse, 'proceed');
+    jest.spyOn(selectAuthenticatorUnlockAccountResponse, 'proceed');
+    jest.spyOn(verifyEmailResponse, 'proceed');
+
+    const inputValues = {
+      username: 'myname',
+      authenticator: AuthenticatorKey.OKTA_EMAIL
+    };
+
+    let res = await unlockAccount(authClient, inputValues);
+    expect(introspectResponse.proceed).toHaveBeenCalledWith('unlock-account', {});
+    expect(selectAuthenticatorUnlockAccountResponse.proceed).toHaveBeenCalledWith('select-authenticator-unlock-account', {
       identifier: 'myname',
-      authenticator: 'email'
+      authenticator: AuthenticatorKey.OKTA_EMAIL
     });
 
     // expect(res).toEqual({

@@ -12,6 +12,8 @@
 
 
 import { SelectAuthenticator, SelectAuthenticatorValues } from './Base/SelectAuthenticator';
+import { Authenticator, AuthenticatorKey } from '../types';
+import { IdxRemediation } from '../types/idx-js';
 
 export type SelectAuthenticatorUnlockAccountValues = SelectAuthenticatorValues & {
   identifier?: string;
@@ -21,10 +23,24 @@ export class SelectAuthenticatorUnlockAccount extends SelectAuthenticator {
   static remediationName = 'select-authenticator-unlock-account';
   values: SelectAuthenticatorUnlockAccountValues;
 
+  map = {
+    // ...super.map,
+    authenticator: [],
+    identifier: ['username']
+  }
+
+  // constructor(remediation: IdxRemediation, values: SelectAuthenticatorValues = {}) {
+  //   super(remediation, values);
+  // }
+
   canRemediate() {
     // TODO:
     const { identifier } = this.getData();
     return !!identifier && super.canRemediate();
     // return false;
+  }
+
+  getInputUsername () {
+    return { name: 'username', key: 'string' };
   }
 }
