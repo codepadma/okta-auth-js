@@ -319,6 +319,7 @@ class TestApp {
       <div id="xhr-error" style="color: red">${xhrError}</div>
       <hr/>
       ${homeLink(this)}
+      ${logoutLink(this)}
     `);
     this._afterRender('with-error');
   }
