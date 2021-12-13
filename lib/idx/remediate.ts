@@ -36,7 +36,7 @@ export function getRemediator(
   values: RemediationValues,
   options: RunOptions,
 ): Remediator {
-  const { remediators, flowMonitor } = options;
+  const { remediators } = options;
 
   let remediator;
   const remediatorCandidates = [];
@@ -48,29 +48,15 @@ export function getRemediator(
       
     const T = remediators[remediation.name];
     remediator = new T(remediation, values);
-    if (flowMonitor.isRemediatorCandidate(remediator, idxRemediations, values)) {
-      if (remediator.canRemediate()) {
-        // found the remediator
-        return remediator;
-      }
-      // remediator cannot handle the current values
-      // maybe return for next step
-      remediatorCandidates.push(remediator);  
+    if (remediator.canRemediate()) {
+      // found the remediator
+      return remediator;
     }
+    // remediator cannot handle the current values
+    // maybe return for next step
+    remediatorCandidates.push(remediator);  
   }
   
-  // TODO: why is it a problem to have multiple remediations? 
-  // JIRA: https://oktainc.atlassian.net/browse/OKTA-400758
-  // if (remediatorCandidates.length > 1) {
-  //   const remediationNames = remediatorCandidates.reduce((acc, curr) => {
-  //     const name = curr.getName();
-  //     return acc ? `${acc}, ${name}` : name;
-  //   }, '');
-  //   throw new AuthSdkError(`
-  //     More than one remediation can match the current input, remediations: ${remediationNames}
-  //   `);
-  // }
-
   return remediatorCandidates[0];
 }
 
@@ -194,6 +180,10 @@ export async function remediate(
     for (let action of actions) {
       let valuesWithoutExecutedAction = removeActionFromValues(values);
       if (typeof idxResponse.actions[action] === 'function') {
+        if (flowMonitor.loopDetected(action)) {
+          throw new AuthSdkError(`Remediation runs into loop, break!!! remediation: ${action}`);
+        }
+
         try {
           idxResponse = await idxResponse.actions[action]();
         } catch (e) {
@@ -208,6 +198,7 @@ export async function remediate(
   }
 
   const remediator = getRemediator(neededToProceed, values, options);
+  const name = remediator.getName();
   
   if (!remediator) {
     throw new AuthSdkError(`
@@ -216,10 +207,8 @@ export async function remediate(
     `);
   }
 
-  if (flowMonitor.loopDetected(remediator)) {
-    throw new AuthSdkError(`
-      Remediation run into loop, break!!! remediation: ${remediator.getName()}
-    `);
+  if (flowMonitor.loopDetected(name)) {
+    throw new AuthSdkError(`Remediation runs into loop, break!!! remediation: ${name}`);
   }
 
   // Recursive loop breaker
@@ -229,7 +218,6 @@ export async function remediate(
     return { idxResponse, nextStep };
   }
 
-  const name = remediator.getName();
   const data = remediator.getData();
   try {
     idxResponse = await idxResponse.proceed(name, data);

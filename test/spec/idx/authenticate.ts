@@ -972,7 +972,7 @@ describe('idx/authenticate', () => {
               },
               inputs: [
                 { name: 'methodType', type: 'string', required: true },
-                { name: 'phoneNumber', type: 'string', required: true },
+                { name: 'phoneNumber', type: 'string', required: true, label: 'Phone Number' },
               ],
               options: [
                 { label: 'SMS', value: 'sms' },
@@ -1063,7 +1063,7 @@ describe('idx/authenticate', () => {
               },
               inputs: [
                 { name: 'methodType', type: 'string', required: true },
-                { name: 'phoneNumber', type: 'string', required: true },
+                { name: 'phoneNumber', type: 'string', required: true, label: 'Phone Number' },
               ],
               options: [
                 { label: 'SMS', value: 'sms' },

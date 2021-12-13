@@ -15,26 +15,6 @@ import { FlowMonitor } from './FlowMonitor';
 import { getTransactionMeta } from '../transactionMeta';
 
 export class PasswordRecoveryFlowMonitor extends FlowMonitor {
-  isRemediatorCandidate(remediator, remediations?, values?) {
-    const prevRemediatorName = this.previousRemediator?.getName();
-    const remediatorName = remediator.getName();
-    
-    if (remediatorName === 'select-authenticator-authenticate' 
-      && [
-        'select-authenticator-authenticate',
-        'reenroll-authenticator'
-      ].includes(prevRemediatorName)) {
-      return false;
-    }
-
-    if (remediatorName === 'select-authenticator-authenticate' 
-      && remediations.some(({ name }) => name === 'challenge-authenticator')) {
-      return false;
-    }
-
-    return super.isRemediatorCandidate(remediator, remediations, values);
-  }
-
   async isFinished() {
     const { remediations }  = await getTransactionMeta(this.authClient);
     if (!remediations.includes('reset-authenticator')) {

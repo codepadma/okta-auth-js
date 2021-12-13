@@ -68,14 +68,16 @@ export class Identify extends Remediator {
   }
 
   getValuesAfterProceed() {
-    // Handle username + password scenario
+    this.values = super.getValuesAfterProceed();
+
+    // Handle username + password scenario (classic)
     // remove "password" from authenticator array when remediation is finished
     if (this.remediation.value.some(({ name }) => name === 'credentials')) {
       const authenticators = (this.values.authenticators as Authenticator[])
-        ?.filter(authenticator => authenticator.key !== AuthenticatorKey.OKTA_PASSWORD);
+        .filter(authenticator => authenticator.key !== AuthenticatorKey.OKTA_PASSWORD);
       return { ...this.values, authenticators };
     }
 
-    return super.getValuesAfterProceed();
+    return { ...this.values };
   }
 }

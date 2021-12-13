@@ -952,7 +952,7 @@ describe('idx/register', () => {
       });
     });
 
-    it('can set up a phone on demand', async () => {
+    it.only('can set up a phone on demand', async () => {
       const {
         authClient,
         tokenResponse,
@@ -1005,7 +1005,7 @@ describe('idx/register', () => {
           },
           inputs: [
             { name: 'methodType', type: 'string', required: true },
-            { name: 'phoneNumber', type: 'string', required: true },
+            { name: 'phoneNumber', type: 'string', required: true, label: 'Phone Number' },
           ],
           options: [
             { label: 'SMS', value: 'sms' },

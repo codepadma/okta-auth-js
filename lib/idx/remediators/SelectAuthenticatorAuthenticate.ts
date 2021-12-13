@@ -12,6 +12,7 @@
 
 
 import { SelectAuthenticator, SelectAuthenticatorValues } from './Base/SelectAuthenticator';
+import { getAuthenticatorFromRemediation } from './util';
 import { IdxRemediation } from '../types/idx-js';
 import { AuthenticatorKey, Authenticator } from '../types';
 
@@ -25,7 +26,9 @@ export class SelectAuthenticatorAuthenticate extends SelectAuthenticator {
     super(remediation, values);
 
     // Preset password authenticator to trigger recover action
-    if (values.flow === 'recoverPassword') {
+    const hasPasswordInOptions = getAuthenticatorFromRemediation(remediation)
+      .options?.some(({ relatesTo }) => relatesTo.key === AuthenticatorKey.OKTA_PASSWORD);
+    if (values.flow === 'recoverPassword' && hasPasswordInOptions) {
       this.values.authenticators = [
         ...this.values.authenticators,
         { key: AuthenticatorKey.OKTA_PASSWORD }

@@ -12,12 +12,10 @@
 
 
 import { OktaAuth } from '../../types';
-import { Remediator, RemediationValues, SkipValues } from '../remediators';
 import { getTransactionMeta, saveTransactionMeta } from '../transactionMeta';
-import { IdxRemediation } from '../types/idx-js';
 
 export class FlowMonitor {
-  previousRemediator: Remediator;
+  previousStep: string;
   authClient: OktaAuth;
 
   constructor(authClient) {
@@ -25,32 +23,18 @@ export class FlowMonitor {
   }
 
   // detect in-memory loop
-  loopDetected(remediator: Remediator): boolean {
-    if (!this.previousRemediator) {
-      this.previousRemediator = remediator;
+  loopDetected(step: string): boolean {
+    if (!this.previousStep) {
+      this.previousStep = step;
       return false;
     }
 
-    if (this.previousRemediator.getName() === remediator.getName()) {
+    if (this.previousStep === step) {
       return true;
     }
 
-    this.previousRemediator = remediator;
+    this.previousStep = step;
     return false;
-  }
-
-  isRemediatorCandidate(
-    // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
-    remediator: Remediator, remediations?: IdxRemediation[], values?: RemediationValues & SkipValues
-  ): boolean {
-    const remediatorName = remediator.getName();
-    if (!values.skip && remediatorName === 'skip') {
-      return false;
-    }
-    if (values.skip && remediatorName !== 'skip') {
-      return false;
-    }
-    return true;
   }
 
   async trackRemediations(name: string) {
