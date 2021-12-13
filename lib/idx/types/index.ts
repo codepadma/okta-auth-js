@@ -31,6 +31,7 @@ export { IdxMessage } from './idx-js';
 export { AuthenticationOptions } from '../authenticate';
 export { RegistrationOptions } from '../register';
 export { PasswordRecoveryOptions } from '../recoverPassword';
+export { AccountUnlockOptions } from '../unlockAccount';
 export { ProceedOptions } from '../proceed';
 export { CancelOptions } from '../cancel';
 export { FlowIdentifier };

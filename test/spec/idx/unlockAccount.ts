@@ -408,26 +408,26 @@ describe('/idx/unlockAccout', () => {
 
     let res = await unlockAccount(authClient, inputValues);
     expect(introspectResponse.proceed).toHaveBeenCalledWith('unlock-account', {});
-    expect(selectAuthenticatorUnlockAccountResponse.proceed).toHaveBeenCalledWith('select-authenticator-unlock-account', {
-      identifier: 'myname',
-      authenticator: AuthenticatorKey.OKTA_EMAIL
-    });
-
-    // expect(res).toEqual({
-    //   _idxResponse: expect.any(Object),
-    //   status: IdxStatus.PENDING,
-    //   nextStep: {
-    //     name: 'challenge-authenticator',
-    //     inputs: [],
-    //     // inputs: [{
-    //     //   name: 'authenticator',
-    //     //   key: 'string',
-    //     // }],
-    //     // options: [{
-    //     //   label: 'Password',
-    //     //   value: AuthenticatorKey.OKTA_PASSWORD
-    //     // }]
-    //   }
+    // expect(selectAuthenticatorUnlockAccountResponse.proceed).toHaveBeenCalledWith('select-authenticator-unlock-account', {
+    //   identifier: 'myname',
+    //   authenticator: AuthenticatorKey.OKTA_EMAIL
     // });
+
+    expect(res).toEqual({
+      _idxResponse: expect.any(Object),
+      status: IdxStatus.PENDING,
+      nextStep: {
+        name: 'challenge-authenticator',
+        inputs: [],
+        // inputs: [{
+        //   name: 'authenticator',
+        //   key: 'string',
+        // }],
+        // options: [{
+        //   label: 'Password',
+        //   value: AuthenticatorKey.OKTA_PASSWORD
+        // }]
+      }
+    });
   });
 });

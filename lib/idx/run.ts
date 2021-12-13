@@ -165,6 +165,7 @@ export async function run(
       // Track fields from remediation response
       nextStep = nextStepFromResp;
       messages = messagesFromResp;
+      idxResponse = idxResponseFromResp;
 
       // Save intermediate idx response in storage to reduce introspect call
       if (nextStep) {

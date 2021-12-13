@@ -64,9 +64,9 @@ export default function App() {
       setTransaction(newTransaction);
     }
 
-    if (oktaAuth.idx.canProceed()) {
-      resumeTransaction();
-    }
+    // if (oktaAuth.idx.canProceed()) {
+    //   resumeTransaction();
+    // }
 
   }, [history, setAuthState, setTransaction]);
 
@@ -106,7 +106,8 @@ export default function App() {
   const startIdxFlow = flowMethod => async () => {
     const newTransaction = flowMethod === 'idp' 
       ? await oktaAuth.idx.startTransaction() 
-      : await oktaAuth.idx[flowMethod]();
+      // : await oktaAuth.idx[flowMethod]();
+      : await oktaAuth.idx[flowMethod]({username: 'jared.perreault+auth-js@okta.com', authenticator: 'okta_email'});
     setTransaction(newTransaction);
   };
 
@@ -131,6 +132,7 @@ export default function App() {
       <button onClick={startIdxFlow('authenticate')}>Login</button>
       <button onClick={startIdxFlow('recoverPassword')}>Recover Password</button>
       <button onClick={startIdxFlow('register')}>Registration</button>
+      <button onClick={startIdxFlow('unlockAccount')}>Unlock Account</button>
       <button onClick={startIdxFlow('idp')}>IDP</button>
     </div>
   );

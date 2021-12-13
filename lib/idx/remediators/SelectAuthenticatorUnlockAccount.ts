@@ -43,4 +43,8 @@ export class SelectAuthenticatorUnlockAccount extends SelectAuthenticator {
   getInputUsername () {
     return { name: 'username', key: 'string' };
   }
+
+  // getInputAuthenticator () {
+  //   return undefined;
+  // }
 }

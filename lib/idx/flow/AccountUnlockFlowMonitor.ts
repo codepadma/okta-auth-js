@@ -18,6 +18,11 @@ export class AccountUnlockFlowMonitor extends FlowMonitor {
     const prevRemediatorName = this.previousRemediator?.getName();
     const remediatorName = remediator.getName();
 
+    // required to prevent /identify from auto-remediating when 'username' passed
+    if (remediatorName === 'identify' && !prevRemediatorName) {
+      return false;
+    }
+
     if (remediatorName === 'unlock-account'
       && [
         'select-authenticator-unlock-account',
