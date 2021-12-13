@@ -340,27 +340,35 @@ describe('/idx/unlockAccout', () => {
     };
 
     res = await unlockAccount(authClient, inputValues);
-    expect(selectAuthenticatorUnlockAccountResponse.proceed).toHaveBeenCalledWith('select-authenticator-unlock-account', {
-      username: 'myname',
-      authenticator: AuthenticatorKey.OKTA_EMAIL
+    expect(unlockAccoutRemediationResponse.proceed).toHaveBeenCalledWith('select-authenticator-unlock-account', {
+      identifier: 'myname',
+      authenticator: {
+        id: 'id-email'
+      }
     });
-
-    // expect(res).toEqual({
-    //   _idxResponse: expect.any(Object),
-    //   status: IdxStatus.PENDING,
-    //   nextStep: {
-    //     name: 'challenge-authenticator',
-    //     inputs: [],
-    //     // inputs: [{
-    //     //   name: 'authenticator',
-    //     //   key: 'string',
-    //     // }],
-    //     // options: [{
-    //     //   label: 'Password',
-    //     //   value: AuthenticatorKey.OKTA_PASSWORD
-    //     // }]
-    //   }
-    // });
+    expect(res).toEqual({
+      _idxResponse: expect.any(Object),
+      status: IdxStatus.PENDING,
+      nextStep: {
+        name: 'challenge-authenticator',
+        type: 'email',
+        inputs: [
+          {
+            label: 'Enter code',
+            name: 'verificationCode',
+            required: true,
+            type: 'string'
+          }
+        ],
+        authenticator: {
+          displayName: 'Email',
+          id: '6',
+          key: 'okta_email',
+          methods: [{ type: 'email' }],
+          type: 'email'
+        }
+      }
+    });
   });
 
   it('can auto-remediate using username and email authenticator', async () => {
@@ -408,25 +416,33 @@ describe('/idx/unlockAccout', () => {
 
     let res = await unlockAccount(authClient, inputValues);
     expect(introspectResponse.proceed).toHaveBeenCalledWith('unlock-account', {});
-    // expect(selectAuthenticatorUnlockAccountResponse.proceed).toHaveBeenCalledWith('select-authenticator-unlock-account', {
-    //   identifier: 'myname',
-    //   authenticator: AuthenticatorKey.OKTA_EMAIL
-    // });
-
+    expect(unlockAccoutRemediationResponse.proceed).toHaveBeenCalledWith('select-authenticator-unlock-account', {
+      identifier: 'myname',
+      authenticator: {
+        id: 'id-email'
+      }
+    });
     expect(res).toEqual({
       _idxResponse: expect.any(Object),
       status: IdxStatus.PENDING,
       nextStep: {
         name: 'challenge-authenticator',
-        inputs: [],
-        // inputs: [{
-        //   name: 'authenticator',
-        //   key: 'string',
-        // }],
-        // options: [{
-        //   label: 'Password',
-        //   value: AuthenticatorKey.OKTA_PASSWORD
-        // }]
+        type: 'email',
+        inputs: [
+          {
+            label: 'Enter code',
+            name: 'verificationCode',
+            required: true,
+            type: 'string'
+          }
+        ],
+        authenticator: {
+          displayName: 'Email',
+          id: '6',
+          key: 'okta_email',
+          methods: [{ type: 'email' }],
+          type: 'email'
+        }
       }
     });
   });
