@@ -710,9 +710,9 @@ class TestApp {
     if (idToken || accessToken) {
       // Authenticated user home page
       return `
-        <strong>Welcome back</strong>
-        <div class="pure-g">
-          <div class="pure-u-1-2">
+        <strong>Authenticated</strong>
+        <div class="flex-row">
+          <div class="left-column">
             <div class="actions authenticated pure-menu">
               <ul class="pure-menu-list">
                 <li class="pure-menu-item">
@@ -747,21 +747,20 @@ class TestApp {
                 </li>
               </ul>
             </div>
-          </div>
-          <div class="pure-u-1-2">
             ${logoutLink(this)}
           </div>
+          <div class="right-column">
+            <div id="user-info"></div>
+            ${ tokensHTML({idToken, accessToken, refreshToken})}
+          </div>
         </div>
-        <div id="user-info"></div>
-        <hr/>
-        ${ tokensHTML({idToken, accessToken, refreshToken})}
       `;
     }
 
     // Unauthenticated user, Login page
     return `
       <div class="box">
-      <strong>Greetings, unknown user!</strong>
+      <strong>Unauthenticated</strong>
       </div>
       ${loginLinks(this)}
       `;
