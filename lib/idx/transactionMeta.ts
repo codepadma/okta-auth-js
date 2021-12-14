@@ -78,9 +78,21 @@ export function getSavedTransactionMeta(authClient: OktaAuth, options?: Transact
   } catch (e) {
     // ignore errors here
   }
-  if (savedMeta && isTransactionMetaValid(savedMeta, options)) {
+
+  if (!savedMeta) {
+    return null;
+  }
+
+  if (isTransactionMetaValid(savedMeta, options)) {
     return savedMeta;
   }
+
+  // existing meta is not valid for this configuration
+  // this is common when changing configuration in local development environment
+  // in a production environment, this may indicate that two apps are sharing a storage key
+  warn('Saved transaction meta does not match the current configuration. ' + 
+    'This may indicate that two apps are sharing a storage key.');
+
 }
 
 export async function getTransactionMeta(
@@ -89,18 +101,11 @@ export async function getTransactionMeta(
 ): Promise<IdxTransactionMeta> {
   options = { ...authClient.options, ...options }; // local options override SDK options
   // Load existing transaction meta from storage
-  if (authClient.transactionManager.exists(options)) {
-    const validExistingMeta = getSavedTransactionMeta(authClient, options);
-    if (validExistingMeta) {
-      return validExistingMeta;
-    }
-    // existing meta is not valid for this configuration
-    // this is common when changing configuration in local development environment
-    // in a production environment, this may indicate that two apps are sharing a storage key
-    warn('Saved transaction meta does not match the current configuration. ' + 
-      'This may indicate that two apps are sharing a storage key.');
+  const validExistingMeta = getSavedTransactionMeta(authClient, options);
+  if (validExistingMeta) {
+    return validExistingMeta;
   }
-
+  // No existing? Create new transaction meta.
   return createTransactionMeta(authClient, options);
 }
 
