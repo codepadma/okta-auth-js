@@ -47,7 +47,10 @@ const drivers = {
 };
 
 export const config: WebdriverIO.Config = {
-
+    jasmineOpts: {
+        defaultTimeoutInterval,
+        stopSpecOnExpectationFailure: true
+    },
     //
     // ====================
     // Runner Configuration
