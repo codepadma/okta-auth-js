@@ -15,7 +15,7 @@
 import { AuthSdkError } from '../errors';
 import { Remediator, RemediationValues } from './remediators';
 import { FlowMonitor, RemediationFlow } from './flow';
-import { NextStep, IdxMessage } from './types';
+import { NextStep, IdxMessage, FlowIdentifier } from './types';
 import { 
   IdxResponse,  
   IdxRemediation,
@@ -33,6 +33,7 @@ export interface RemediateOptions {
   remediators?: RemediationFlow;
   actions?: string[];
   flowMonitor?: FlowMonitor;
+  flow?: FlowIdentifier;
 }
 
 // Return first match idxRemediation in allowed remediators

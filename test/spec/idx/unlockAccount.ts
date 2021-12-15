@@ -40,7 +40,8 @@ import {
 const mocked = {
   interact: require('../../../lib/idx/interact'),
   introspect: require('../../../lib/idx/introspect'),
-  startTransaction: require('../../../lib/idx/startTransaction')
+  startTransaction: require('../../../lib/idx/startTransaction'),
+  transactionMeta: require('../../../lib/idx/transactionMeta'),
 };
 
 describe('/idx/unlockAccout', () => {
@@ -87,6 +88,9 @@ describe('/idx/unlockAccout', () => {
         setFlow: () => {}
       }
     };
+
+    jest.spyOn(mocked.transactionMeta, 'getSavedTransactionMeta').mockReturnValue(transactionMeta);
+    jest.spyOn(mocked.transactionMeta, 'getTransactionMeta').mockReturnValue(transactionMeta);
 
     jest.spyOn(mocked.interact, 'interact').mockResolvedValue({ 
       meta: transactionMeta,
@@ -172,11 +176,63 @@ describe('/idx/unlockAccout', () => {
     };
   });
 
+  it('returns a transaction', async () => {
+    const { 
+      authClient,
+      introspectResponse,
+      unlockAccoutRemediationResponse
+    } = testContext;
+
+    chainResponses([
+      introspectResponse,
+      unlockAccoutRemediationResponse
+    ]);
+
+    jest.spyOn(mocked.introspect, 'introspect')
+      .mockResolvedValueOnce(introspectResponse)
+      .mockResolvedValueOnce(unlockAccoutRemediationResponse)
+    
+    jest.spyOn(introspectResponse, 'proceed');
+    jest.spyOn(unlockAccoutRemediationResponse, 'proceed');
+
+    let res = await unlockAccount(authClient, {});
+    expect(introspectResponse.proceed).toHaveBeenCalledWith('unlock-account', { });
+    expect(res).toMatchObject({
+      status: IdxStatus.PENDING,
+      nextStep: {
+        name: 'select-authenticator-unlock-account',
+        inputs: [
+          {
+            key: 'string',
+            name: 'authenticator'
+          },
+          {
+            label: 'Username',
+            name: 'username'
+          }
+        ],
+        options: [
+          {
+            label: 'Phone',
+            value: 'phone_number'
+          },
+          {
+            label: 'Email',
+            value: 'okta_email'
+          }
+        ],
+      }
+    });
+  });
+
   describe('feature detection', () => {
+    beforeEach(() => {
+      jest.spyOn(mocked.transactionMeta, 'hasSavedInteractionHandle').mockReturnValue(false);
+    });
 
     it('throws an error if self service account unlock is not supported', async () => {
       const { authClient, transactionMeta } = testContext;
-      jest.spyOn(authClient.transactionManager, 'exists').mockReturnValue(false);
+      // jest.spyOn(authClient.transactionManager, 'exists').mockReturnValue(false);
       authClient.token.prepareTokenParams = jest.fn().mockResolvedValue(transactionMeta);
       const identifyResponse = IdxResponseFactory.build({
         neededToProceed: [
@@ -193,63 +249,13 @@ describe('/idx/unlockAccout', () => {
 
     it('calls startTransaction, setting flow to "unlockAccount"', async () => {
       const { authClient } = testContext;
-      jest.spyOn(authClient.transactionManager, 'exists').mockReturnValue(false);
+      // jest.spyOn(authClient.transactionManager, 'exists').mockReturnValue(false);
       jest.spyOn(mocked.startTransaction, 'startTransaction').mockReturnValue({ enabledFeatures: [] });
       const res = await unlockAccount(authClient, {});
       expect(res.status).toBe(IdxStatus.FAILURE);
       expect(res.error).toBeInstanceOf(AuthSdkError);
       expect(res.error.errorSummary).toBe('Self Service Account Unlock is not supported based on your current org configuration.');
       expect(mocked.startTransaction.startTransaction).toHaveBeenCalledWith(authClient, { flow: 'unlockAccount' });
-    });
-
-    it('returns a transaction', async () => {
-      const { 
-        authClient,
-        introspectResponse,
-        unlockAccoutRemediationResponse
-      } = testContext;
-  
-      chainResponses([
-        introspectResponse,
-        unlockAccoutRemediationResponse
-      ]);
-  
-      jest.spyOn(mocked.introspect, 'introspect')
-        .mockResolvedValueOnce(introspectResponse)
-        .mockResolvedValueOnce(unlockAccoutRemediationResponse)
-      
-      jest.spyOn(introspectResponse, 'proceed');
-      jest.spyOn(unlockAccoutRemediationResponse, 'proceed');
-  
-      let res = await unlockAccount(authClient, {});
-      expect(introspectResponse.proceed).toHaveBeenCalledWith('unlock-account', { });
-      expect(res).toMatchObject({
-        _idxResponse: expect.any(Object),
-        status: IdxStatus.PENDING,
-        nextStep: {
-          name: 'select-authenticator-unlock-account',
-          inputs: [
-            {
-              key: 'string',
-              name: 'authenticator'
-            },
-            {
-              label: 'Username',
-              name: 'username'
-            }
-          ],
-          options: [
-            {
-              label: 'Phone',
-              value: 'phone_number'
-            },
-            {
-              label: 'Email',
-              value: 'okta_email'
-            }
-          ],
-        }
-      });
     });
   });
 
@@ -322,8 +328,7 @@ describe('/idx/unlockAccout', () => {
           id: 'id-email'
         }
       });
-      expect(res).toEqual({
-        _idxResponse: expect.any(Object),
+      expect(res).toMatchObject({
         status: IdxStatus.PENDING,
         nextStep: {
           name: 'challenge-authenticator',
@@ -352,8 +357,7 @@ describe('/idx/unlockAccout', () => {
           passcode: 'test-passcode'
         }
       });
-      expect(res).toEqual({
-        _idxResponse: expect.any(Object),
+      expect(res).toMatchObject({
         status: IdxStatus.TERMINAL,
       });
     });
@@ -378,8 +382,7 @@ describe('/idx/unlockAccout', () => {
           id: 'id-email'
         }
       });
-      expect(res).toEqual({
-        _idxResponse: expect.any(Object),
+      expect(res).toMatchObject({
         status: IdxStatus.PENDING,
         nextStep: {
           name: 'challenge-authenticator',

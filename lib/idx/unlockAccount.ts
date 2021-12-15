@@ -12,7 +12,7 @@
 
 
 import { run } from './run';
-import { transactionMetaExist } from './transactionMeta';
+import { hasSavedInteractionHandle } from './transactionMeta';
 import { startTransaction } from './startTransaction';
 import {
   IdentifyValues,
@@ -42,11 +42,11 @@ export async function unlockAccount(
   authClient: OktaAuth, options: AccountUnlockOptions
 ): Promise<IdxTransaction> {
   // Only check at the beginning of the transaction
-  if (!transactionMetaExist(authClient)) {
+  if (!hasSavedInteractionHandle(authClient)) {
     const { enabledFeatures } = await startTransaction(authClient, { flow: 'unlockAccount', ...options });
     if (enabledFeatures && !enabledFeatures.includes(IdxFeature.ACCOUNT_UNLOCK)) {
       const error = new AuthSdkError('Self Service Account Unlock is not supported based on your current org configuration.');
-      return { status: IdxStatus.FAILURE, error };
+      return { status: IdxStatus.FAILURE, error } as unknown as IdxTransaction; // TODO: wny not just throw the error?
     }
   }
 
