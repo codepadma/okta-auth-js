@@ -93,13 +93,24 @@ export async function run(
   let idxResponse;
   let interactionHandle;
   let metaFromResp;
+  let interactionCode;
 
   try {
 
-    let { flow, flowMonitor, state, scopes, version, remediators, actions, withCredentials } = options;
+    let {
+      flow,
+      flowMonitor,
+      state,
+      scopes,
+      version,
+      remediators,
+      actions,
+      withCredentials,
+      exchangeCodeForTokens
+    } = options;
 
     // Only one flow can be operating at a time
-    flow = flow || authClient.idx.getFlow();
+    flow = flow || authClient.idx.getFlow() || 'default';
     if (flow) {
       authClient.idx.setFlow(flow);
       const flowSpec = getFlowSpecification(authClient, flow);
@@ -169,25 +180,33 @@ export async function run(
           throw new AuthSdkError('Current flow is not supported, check policy settings in your org.');
         }
 
-        const {
-          clientId,
-          codeVerifier,
-          ignoreSignature,
-          redirectUri,
-          urls,
-          scopes,
-        } = metaFromResp;
-        tokens = await authClient.token.exchangeCodeForTokens({
-          interactionCode: idxResponseFromResp.interactionCode,
-          clientId,
-          codeVerifier,
-          ignoreSignature,
-          redirectUri,
-          scopes
-        }, urls);
+        interactionCode = idxResponseFromResp.interactionCode;
 
-        status = IdxStatus.SUCCESS;
-        shouldClearTransaction = true;
+        if (exchangeCodeForTokens === false) {
+          status = IdxStatus.SUCCESS;
+          shouldClearTransaction = false;
+        } else {
+          // exchange the interaction code for tokens
+          const {
+            clientId,
+            codeVerifier,
+            ignoreSignature,
+            redirectUri,
+            urls,
+            scopes,
+          } = metaFromResp;
+          tokens = await authClient.token.exchangeCodeForTokens({
+            interactionCode,
+            clientId,
+            codeVerifier,
+            ignoreSignature,
+            redirectUri,
+            scopes
+          }, urls);
+
+          status = IdxStatus.SUCCESS;
+          shouldClearTransaction = true;
+        }
       }
     }
   } catch (err) {
@@ -211,6 +230,7 @@ export async function run(
     ...(nextStep && { nextStep }),
     ...(messages && { messages }),
     ...(error && { error }),
+    interactionCode, // if options.exchangeCodeForTokens is false
 
     // from idx-js
     actions,
