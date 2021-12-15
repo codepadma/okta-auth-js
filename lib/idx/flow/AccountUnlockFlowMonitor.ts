@@ -58,6 +58,11 @@ export class AccountUnlockFlowMonitor extends FlowMonitor {
       return false;
     }
 
+    if (remediatorName === 'select-authenticator-authenticate'
+      && remediations.some(({ name }) => name === 'challenge-authenticator')) {
+      return false;
+    }
+
     return super.isRemediatorCandidate(remediator, remediations, values);
   }
 }

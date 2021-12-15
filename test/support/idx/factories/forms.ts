@@ -23,7 +23,8 @@ import {
   LastNameValueFactory,
   EmailValueFactory,
   PasscodeValueFactory,
-  OtpMethodTypeValueFactory
+  OtpMethodTypeValueFactory,
+  OktaVerifyMethodTypeValueFactory
 } from './values';
 
 export const IdxFormFactory = Factory.define<IdxForm>(() => {
@@ -82,6 +83,15 @@ export const OktaVerifyAuthenticatorFormFactory = IdxFormFactory.params({
       value: 'id-okta-verify-authenticator'
     }),
     OtpMethodTypeValueFactory.build()
+  ]
+});
+
+export const OktaVerifyFormFactory = IdxFormFactory.params({
+  value: [
+    IdValueFactory.build({
+      value: 'id-okta-verify'
+    }),
+    OktaVerifyMethodTypeValueFactory.build()
   ]
 });
 

@@ -19,6 +19,7 @@ export default function App() {
   const [transaction, setTransaction] = useState(null);
   const [inputValues, setInputValues] = useState({});
   const [authState, setAuthState] = useState(null);
+  const [params, setParams] = useState(false);
 
   useEffect(() => {
     const parseFromUrl = async () => {
@@ -103,11 +104,16 @@ export default function App() {
     await oktaAuth.signOut();
   };
 
+  const transactionParams = {
+    username: 'jared.perreault+auth-js@okta.com',
+    authenticator: 'okta_email'
+  };
+
   const startIdxFlow = flowMethod => async () => {
     const newTransaction = flowMethod === 'idp' 
-      ? await oktaAuth.idx.startTransaction() 
-      // : await oktaAuth.idx[flowMethod]();
-      : await oktaAuth.idx[flowMethod]({username: 'jared.perreault+auth-js@okta.com', authenticator: 'okta_email'});
+      ? await oktaAuth.idx.startTransaction()
+      : !params ? await oktaAuth.idx[flowMethod]()
+      : await oktaAuth.idx[flowMethod](transactionParams);
     setTransaction(newTransaction);
   };
 
@@ -129,11 +135,17 @@ export default function App() {
 
   const topNav = (
     <div>
-      <button onClick={startIdxFlow('authenticate')}>Login</button>
-      <button onClick={startIdxFlow('recoverPassword')}>Recover Password</button>
-      <button onClick={startIdxFlow('register')}>Registration</button>
-      <button onClick={startIdxFlow('unlockAccount')}>Unlock Account</button>
-      <button onClick={startIdxFlow('idp')}>IDP</button>
+      <div>
+        <label>Include Params</label>
+        <input type="checkbox" checked={params} onChange={() => setParams(!params)} />
+      </div>
+      <div>
+        <button onClick={startIdxFlow('authenticate')}>Login</button>
+        <button onClick={startIdxFlow('recoverPassword')}>Recover Password</button>
+        <button onClick={startIdxFlow('register')}>Registration</button>
+        <button onClick={startIdxFlow('unlockAccount')}>Unlock Account</button>
+        <button onClick={startIdxFlow('idp')}>IDP</button>
+      </div>
     </div>
   );
   if (!transaction) {
@@ -162,11 +174,21 @@ export default function App() {
   }
 
   if (status === IdxStatus.FAILURE) {
-    return (<div>{error.message || JSON.stringify(error, null, 4)}</div>);
+    return (
+      <div>
+        <button type="button" onClick={() => setTransaction(null)}>Restart</button>
+        <pre>{JSON.stringify(error, null, 4)}</pre>
+      </div>
+    );
   }
 
   if (status === IdxStatus.TERMINAL) {
-    return (<div>{JSON.stringify(messages, null, 4)}</div>);
+    return (
+      <div>
+        <button type="button" onClick={() => setTransaction(null)}>Restart</button>
+        <pre>{JSON.stringify(messages, null, 4)}</pre>
+      </div>
+    );
   }
 
   if (status === IdxStatus.CANCELED) {

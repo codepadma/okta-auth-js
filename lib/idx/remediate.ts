@@ -83,7 +83,7 @@ export function getRemediator(
 
 function isTerminalResponse(idxResponse: IdxResponse) {
   const { neededToProceed, interactionCode } = idxResponse;
-  return !neededToProceed.length && !interactionCode;
+  return !neededToProceed?.length && !interactionCode;
 }
 
 function canSkipFn(idxResponse: IdxResponse) {

@@ -112,3 +112,23 @@ export const PasscodeValueFactory = IdxValueFactory.params({
   'name': 'passcode',
   'label': 'Enter code',
 });
+
+export const OktaVerifyMethodTypeValueFactory = IdxValueFactory.params({
+  name: 'methodType',
+  required: true,
+  options: [
+    // {
+    //   label: 'Use Okta FastPass',
+    //   value: 'signed_nonce'
+    // }, 
+    {
+      label: 'Get a push notification',
+      value: 'push'
+    },
+    {
+      label: 'Enter a code',
+      value: 'totp'
+    },
+  ]
+});
+

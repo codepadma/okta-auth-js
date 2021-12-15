@@ -18,7 +18,8 @@ import {
   PasswordAuthenticatorFactory,
   PhoneAuthenticatorFactory,
   GoogleAuthenticatorFactory,
-  SecurityQuestionAuthenticatorFactory
+  SecurityQuestionAuthenticatorFactory,
+  OktaVerifyAuthenticatorFactory
 } from './authenticators';
 import { 
   EmailAuthenticatorFormFactory, 
@@ -28,7 +29,8 @@ import {
   UserProfileFormFactory, 
   VerifyEmailFormFactory, 
   VerifySmsFormFactory,
-  VerifyPasscodeFormFactory
+  VerifyPasscodeFormFactory,
+  OktaVerifyFormFactory
 } from './forms';
 import {
   UsernameValueFactory,
@@ -79,6 +81,31 @@ export const VerifyEmailRemediationFactory = ChallengeAuthenticatorRemediationFa
   ],
   relatesTo: {
     value: EmailAuthenticatorFactory.build()
+  }
+});
+
+export const VerifyPhoneRemediationFactory = ChallengeAuthenticatorRemediationFactory.params({
+  name: 'challenge-authenticator',
+  value: [
+    CredentialsValueFactory.build({
+      form: VerifySmsFormFactory.build()
+    })
+  ],
+  relatesTo: {
+    value: PhoneAuthenticatorFactory.build()
+  }
+});
+
+export const VerifyOktaVerifyRemediationFactory = ChallengeAuthenticatorRemediationFactory.params({
+  name: 'challenge-authenticator',
+  value: [
+    AuthenticatorValueFactory.build({
+      label: 'Okta Verify',
+      form: OktaVerifyFormFactory.build()
+    })
+  ],
+  relatesTo: {
+    value: OktaVerifyAuthenticatorFactory.build()
   }
 });
 
