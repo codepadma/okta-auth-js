@@ -20,13 +20,15 @@ import { AuthenticationOptions } from './authenticate';
 import { EnrollPollValues as EnrollPollOptions} from './remediators';
 import { RegistrationOptions } from './register';
 import { PasswordRecoveryOptions } from './recoverPassword';
+import { AccountUnlockOptions } from './unlockAccount';
 import { getSavedTransactionMeta } from './transactionMeta';
 import { AuthSdkError } from '../errors';
 
 export type ProceedOptions = AuthenticationOptions
   & RegistrationOptions
   & PasswordRecoveryOptions
-  & EnrollPollOptions;
+  & EnrollPollOptions
+  & AccountUnlockOptions;
 
 export function canProceed(authClient: OktaAuth, options?: { state?: string }) {
   const meta = getSavedTransactionMeta(authClient, options);

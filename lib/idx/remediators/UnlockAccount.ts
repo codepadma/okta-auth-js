@@ -12,6 +12,7 @@
 
 
 import { Remediator, RemediationValues } from './Base/Remediator';
+import { FlowIdentifier } from '../types';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface UnlockAccountValues extends RemediationValues {}
@@ -21,7 +22,7 @@ export class UnlockAccount extends Remediator {
 
   values: UnlockAccountValues;
 
-  canRemediate() {
-    return true;
+  canRemediate(flow?: FlowIdentifier) {
+    return !!flow && flow === 'unlockAccount';
   }
 }

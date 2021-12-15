@@ -176,7 +176,7 @@ export async function remediate(
   options: RemediateOptions
 ): Promise<RemediationResponse> {
   let { neededToProceed, interactionCode } = idxResponse;
-  const { remediators, flowMonitor } = options;
+  const { remediators, flowMonitor, flow } = options;
 
   // If the response contains an interaction code, there is no need to remediate
   if (interactionCode) {
@@ -230,7 +230,7 @@ export async function remediate(
 
   // Recursive loop breaker
   // Return next step to the caller
-  if (!remediator.canRemediate()) {
+  if (!remediator.canRemediate(flow)) {
     const nextStep = getNextStep(remediator, idxResponse);
     return { idxResponse, nextStep };
   }

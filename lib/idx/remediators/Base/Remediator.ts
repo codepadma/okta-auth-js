@@ -13,7 +13,7 @@
 
 /* eslint-disable complexity */
 import { AuthSdkError } from '../../../errors';
-import { NextStep, IdxMessage, Authenticator, Input } from '../../types';
+import { NextStep, IdxMessage, Authenticator, Input, FlowIdentifier } from '../../types';
 import { IdxAuthenticator, IdxRemediation, IdxContext } from '../../types/idx-js';
 import { getAllValues, getRequiredValues, titleCase } from '../util';
 
@@ -50,7 +50,7 @@ export class Remediator {
   }
 
   // Override this method to provide custom check
-  canRemediate(): boolean {
+  canRemediate(flow?: FlowIdentifier): boolean {
     if (!this.map) {
       return false;
     }
