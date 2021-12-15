@@ -16,7 +16,7 @@ import assert from 'assert';
 import TestApp from '../pageobjects/TestApp';
 import OktaHome from '../pageobjects/OktaHome';
 import { flows, openImplicit, openPKCE } from '../util/appUtils';
-import { loginPopup, loginDirect } from '../util/loginUtils';
+import { loginDirect } from '../util/loginUtils';
 import { openOktaHome, switchToMainWindow } from '../util/browserUtils';
 
 
@@ -26,7 +26,7 @@ const scopes = ['openid', 'email']; // do not include "offline_access"
 describe('token revoke', () => {
   it('can revoke the access token', async () => {
     await openPKCE({ scopes });
-    await loginPopup();
+    await loginDirect();
     
     // We should be able to request and display user info with no errors
     await TestApp.getUserInfo();
@@ -61,7 +61,7 @@ describe('E2E token flows', () => {
           scopes
         }, options);
         (flow === 'pkce') ? await openPKCE(options) : await openImplicit(options);
-        await loginPopup(flow);
+        await loginDirect();
       }
 
       it('can renew the access token', async () => {

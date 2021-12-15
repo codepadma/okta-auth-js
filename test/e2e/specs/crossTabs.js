@@ -14,7 +14,7 @@
 import assert from 'assert';
 import TestApp from '../pageobjects/TestApp';
 import { openPKCE } from '../util/appUtils';
-import { loginPopup } from '../util/loginUtils';
+import { loginDirect } from '../util/loginUtils';
 
 const openMultipleTabs = async () => {
   await openPKCE();
@@ -50,7 +50,7 @@ describe('cross tabs AuthState update', () => {
   beforeEach(async () => {
     await openMultipleTabs();
     // login in the latest opened tab
-    await loginPopup();
+    await loginDirect();
     handles = await browser.getWindowHandles();
   });
 
