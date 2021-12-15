@@ -126,10 +126,13 @@ describe('Token auto renew', () => {
     scopes
   };
 
+  beforeEach(async () => {
+    // auto renew tests are highly stateful, reload session before each case
+    await browser.reloadSession();
+  });
+
   afterEach(async () => {
     await TestApp.logoutRedirect();
-    // auto renew tests are highly stateful, reload session after each case
-    await browser.reloadSession();
   });
 
   describe('implicit flow', () => {
