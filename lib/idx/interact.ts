@@ -44,7 +44,6 @@ function getResponse(meta: IdxTransactionMeta): InteractResponse {
 // Begin or resume a transaction. Returns an interaction handle
 export async function interact (authClient: OktaAuth, options: InteractOptions = {}): Promise<InteractResponse> {
   options = removeNils(options);
-  const authParams = removeNils(authClient.options);
 
   let meta = getSavedTransactionMeta(authClient, options);
   // If meta exists, it has been validated against all options
@@ -54,7 +53,7 @@ export async function interact (authClient: OktaAuth, options: InteractOptions =
   }
 
   // Create new meta, respecting previous meta if it has been set and is not overridden
-  meta = await createTransactionMeta(authClient, { ...meta, ...authParams, ...options });
+  meta = await createTransactionMeta(authClient, { ...meta, ...options });
   const baseUrl = getOAuthBaseUrl(authClient);
   let {
     clientId,
