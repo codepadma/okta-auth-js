@@ -42,7 +42,41 @@ export interface IdxAuthenticator {
       question: string;
     }[];
     questionKeys?: string[];
+    activationData?: {
+      challenge: string;
+      rp: {
+        name: string;
+      };
+      user: {
+        id: string;
+        name: string;
+        displayName: string;
+      };
+      pubKeyCredParams: {
+        type: string;
+        alg: number;
+      }[];
+      attestation?: string;
+      authenticatorSelection?: {
+        userVerification?: string;
+        authenticatorAttachment?: string;
+        requireResidentKey?: boolean;
+        residentKey?: string;
+      };
+      excludeCredentials?: {
+        id: string;
+        type: string;
+      }[];
+    };
+    challengeData?: {
+      challenge: string; 
+      userVerification: string; 
+      extensions?: {
+        appid: string;
+      };
+    }
   };
+  credentialId?: string;
 }
 
 export interface IdxForm {
@@ -90,6 +124,37 @@ export interface IdxRemediation {
   type?: string;
   accepts?: string;
   refresh?: number;
+}
+
+export interface IdxContext {
+  version: string;
+  stateHandle: string;
+  expiresAt: string;
+  intent: string;
+  currentAuthenticator: {
+    type: string;
+    value: IdxAuthenticator;
+  };
+  authenticators: {
+    type: string;
+    value: IdxAuthenticator[];
+  };
+  authenticatorEnrollments: {
+    type: string;
+    value: IdxAuthenticator[];
+  };
+  enrollmentAuthenticator: {
+    type: string;
+    value: IdxAuthenticator;
+  };
+  user: {
+    type: string;
+    value: Record<string, unknown>;
+  };
+  app: {
+    type: string;
+    value: Record<string, unknown>;
+  };
 }
 
 export interface IdxContext {

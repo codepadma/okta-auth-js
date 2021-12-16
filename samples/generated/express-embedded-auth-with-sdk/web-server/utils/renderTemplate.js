@@ -21,10 +21,14 @@ module.exports = function renderTemplate(req, res, template, options = {}) {
       nextStep: {
         authenticator: {
           contextualData
-        } = {}
+        } = {},
+        authenticatorEnrollments
       } = {}
     } = {} 
   } = req.getFlowStates();
+  const authenticatorEnrollmentsJSON = authenticatorEnrollments ? JSON.stringify(authenticatorEnrollments) : null;
+  const activationData = contextualData ? JSON.stringify(contextualData.activationData) : null;
+  const challengeData = contextualData ? JSON.stringify(contextualData.challengeData) : null;
   options = { 
     ...options, 
     action: getFormActionPath(req, options.action),
@@ -32,6 +36,9 @@ module.exports = function renderTemplate(req, res, template, options = {}) {
     resendAction: getFormActionPath(req, options.resendAction),
     cancelAction: getFormActionPath(req, '/cancel'),
     contextualData,
+    activationData,
+    challengeData,
+    authenticatorEnrollments: authenticatorEnrollmentsJSON
   };
   
   if (messages && messages.length) {

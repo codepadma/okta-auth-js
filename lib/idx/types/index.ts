@@ -40,7 +40,8 @@ export enum AuthenticatorKey {
   PHONE_NUMBER = 'phone_number',
   GOOGLE_AUTHENTICATOR = 'google_otp',
   SECURITY_QUESTION = 'security_question',
-  OKTA_VERIFY = 'okta_verify'
+  OKTA_VERIFY = 'okta_verify',
+  WEBAUTHN = 'webauthn',
 }
 
 export type Input = {
@@ -60,6 +61,7 @@ export type NextStep = {
   inputs?: Input[];
   options?: IdxOption[];
   poll?: IdxPollOptions;
+  authenticatorEnrollments?: IdxAuthenticator[];
 }
 
 export enum IdxFeature {
