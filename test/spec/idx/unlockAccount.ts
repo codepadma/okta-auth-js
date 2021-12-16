@@ -32,6 +32,12 @@ import {
   OktaVerifyAuthenticatorOptionFactory,
   PhoneAuthenticatorOptionFactory,
   EmailAuthenticatorOptionFactory,
+  ChallengeAuthenticatorRemediationFactory,
+  CredentialsValueFactory,
+  PasscodeValueFactory,
+  EmailAuthenticatorFactory,
+  PhoneAuthenticatorFactory,
+  OktaVerifyAuthenticatorFactory
 } from '@okta/test.support/idx';
 
 const mocked = {
@@ -281,12 +287,6 @@ describe('/idx/unlockAccout', () => {
 
   describe('email authenticator', () => {
     beforeEach(() => {
-      const { 
-        introspectResponse,
-        unlockAccoutRemediationResponse,
-        accountResetTerminalResponse,
-      } = testContext;
-
       const selectAuthenticatorUnlockAccountResponse = IdxResponseFactory.build({
         neededToProceed: [
           VerifyEmailRemediationFactory.build(),
@@ -297,147 +297,203 @@ describe('/idx/unlockAccout', () => {
         ...testContext,
         selectAuthenticatorUnlockAccountResponse,
       };
-
-      chainResponses([
-        introspectResponse,
-        unlockAccoutRemediationResponse,
-        selectAuthenticatorUnlockAccountResponse,
-        accountResetTerminalResponse
-      ]);
-      
-      jest.spyOn(introspectResponse, 'proceed');
-      jest.spyOn(unlockAccoutRemediationResponse, 'proceed');
-      jest.spyOn(selectAuthenticatorUnlockAccountResponse, 'proceed');
     });
 
-    it('can proceed', async () => {
-      const { 
-        authClient,
-        introspectResponse,
-        unlockAccoutRemediationResponse,
-        selectAuthenticatorUnlockAccountResponse,
-        accountResetTerminalResponse
-      } = testContext;
-
-      jest.spyOn(mocked.introspect, 'introspect')
-        .mockResolvedValueOnce(introspectResponse)
-        .mockResolvedValueOnce(unlockAccoutRemediationResponse)
-        .mockResolvedValueOnce(selectAuthenticatorUnlockAccountResponse);
+    describe('full flow', () => {
+      beforeEach(() => {
+        const { 
+          introspectResponse,
+          unlockAccoutRemediationResponse,
+          selectAuthenticatorUnlockAccountResponse,
+          accountResetTerminalResponse,
+        } = testContext;
   
-      let res = await unlockAccount(authClient, {});
-      expect(introspectResponse.proceed).toHaveBeenCalledWith('unlock-account', {});
-  
-      const inputValues = {
-        username: 'myname',
-        authenticator: AuthenticatorKey.OKTA_EMAIL
-      };
-  
-      res = await unlockAccount(authClient, inputValues);
-      expect(unlockAccoutRemediationResponse.proceed).toHaveBeenCalledWith('select-authenticator-unlock-account', {
-        identifier: 'myname',
-        authenticator: {
-          id: 'id-email'
-        }
+        chainResponses([
+          introspectResponse,
+          unlockAccoutRemediationResponse,
+          selectAuthenticatorUnlockAccountResponse,
+          accountResetTerminalResponse
+        ]);
+        
+        jest.spyOn(introspectResponse, 'proceed');
+        jest.spyOn(unlockAccoutRemediationResponse, 'proceed');
+        jest.spyOn(selectAuthenticatorUnlockAccountResponse, 'proceed');
       });
-      expect(res).toMatchObject({
-        status: IdxStatus.PENDING,
-        nextStep: {
-          name: 'challenge-authenticator',
-          type: 'email',
-          inputs: [
-            {
-              label: 'Enter code',
-              name: 'verificationCode',
-              required: true,
-              type: 'string'
-            }
-          ],
+  
+      it('can proceed', async () => {
+        const { 
+          authClient,
+          introspectResponse,
+          unlockAccoutRemediationResponse,
+          selectAuthenticatorUnlockAccountResponse,
+        } = testContext;
+  
+        jest.spyOn(mocked.introspect, 'introspect')
+          .mockResolvedValueOnce(introspectResponse)
+          .mockResolvedValueOnce(unlockAccoutRemediationResponse)
+          .mockResolvedValueOnce(selectAuthenticatorUnlockAccountResponse);
+    
+        let res = await unlockAccount(authClient, {});
+        expect(introspectResponse.proceed).toHaveBeenCalledWith('unlock-account', {});
+    
+        const inputValues = {
+          username: 'myname',
+          authenticator: AuthenticatorKey.OKTA_EMAIL
+        };
+    
+        res = await unlockAccount(authClient, inputValues);
+        expect(unlockAccoutRemediationResponse.proceed).toHaveBeenCalledWith('select-authenticator-unlock-account', {
+          identifier: 'myname',
           authenticator: {
-            displayName: 'Email',
-            id: '6',
-            key: 'okta_email',
-            methods: [{ type: 'email' }],
-            type: 'email'
+            id: 'id-email'
           }
-        }
-      });
-
-      res = await unlockAccount(authClient, { verificationCode: 'test-passcode' });
-      expect(selectAuthenticatorUnlockAccountResponse.proceed).toHaveBeenCalledWith('challenge-authenticator', {
-        credentials: {
-          passcode: 'test-passcode'
-        }
-      });
-      expect(res).toMatchObject(SuccessfulTerminalState);
-    });
-  
-    it('can auto-remediate', async () => {
-      const { 
-        authClient,
-        introspectResponse,
-        unlockAccoutRemediationResponse,
-        selectAuthenticatorUnlockAccountResponse,
-      } = testContext;
-
-      jest.spyOn(mocked.introspect, 'introspect')
-        .mockResolvedValueOnce(introspectResponse)
-        // skip /introspect -> unlockAccountResponse, this is auto-remediated
-        .mockResolvedValueOnce(selectAuthenticatorUnlockAccountResponse);
-
-      const inputValues = {
-        username: 'myname',
-        authenticator: AuthenticatorKey.OKTA_EMAIL
-      };
-  
-      let res = await unlockAccount(authClient, inputValues);
-      expect(introspectResponse.proceed).toHaveBeenCalledWith('unlock-account', {});
-      expect(unlockAccoutRemediationResponse.proceed).toHaveBeenCalledWith('select-authenticator-unlock-account', {
-        identifier: 'myname',
-        authenticator: {
-          id: 'id-email'
-        }
-      });
-      expect(res).toMatchObject({
-        status: IdxStatus.PENDING,
-        nextStep: {
-          name: 'challenge-authenticator',
-          type: 'email',
-          inputs: [
-            {
-              label: 'Enter code',
-              name: 'verificationCode',
-              required: true,
-              type: 'string'
+        });
+        expect(res).toMatchObject({
+          status: IdxStatus.PENDING,
+          nextStep: {
+            name: 'challenge-authenticator',
+            type: 'email',
+            inputs: [
+              {
+                label: 'Enter code',
+                name: 'verificationCode',
+                required: true,
+                type: 'string'
+              }
+            ],
+            authenticator: {
+              displayName: 'Email',
+              id: '6',
+              key: 'okta_email',
+              methods: [{ type: 'email' }],
+              type: 'email'
             }
-          ],
-          authenticator: {
-            displayName: 'Email',
-            id: '6',
-            key: 'okta_email',
-            methods: [{ type: 'email' }],
-            type: 'email'
           }
-        }
+        });
+  
+        res = await unlockAccount(authClient, { verificationCode: 'test-passcode' });
+        expect(selectAuthenticatorUnlockAccountResponse.proceed).toHaveBeenCalledWith('challenge-authenticator', {
+          credentials: {
+            passcode: 'test-passcode'
+          }
+        });
+        expect(res).toMatchObject(SuccessfulTerminalState);
       });
+    
+      it('can auto-remediate', async () => {
+        const { 
+          authClient,
+          introspectResponse,
+          unlockAccoutRemediationResponse,
+          selectAuthenticatorUnlockAccountResponse,
+        } = testContext;
+  
+        jest.spyOn(mocked.introspect, 'introspect')
+          .mockResolvedValueOnce(introspectResponse)
+          // skip /introspect -> unlockAccountResponse, this is auto-remediated
+          .mockResolvedValueOnce(selectAuthenticatorUnlockAccountResponse);
+  
+        const inputValues = {
+          username: 'myname',
+          authenticator: AuthenticatorKey.OKTA_EMAIL,
+          verificationCode: 'test-passcode'
+        };
+    
+        let res = await unlockAccount(authClient, inputValues);
+        expect(introspectResponse.proceed).toHaveBeenCalledWith('unlock-account', {});
+        expect(unlockAccoutRemediationResponse.proceed).toHaveBeenCalledWith('select-authenticator-unlock-account', {
+          identifier: 'myname',
+          authenticator: {
+            id: 'id-email'
+          }
+        });
+        expect(selectAuthenticatorUnlockAccountResponse.proceed).toHaveBeenCalledWith('challenge-authenticator', {
+          credentials: {
+            passcode: 'test-passcode'
+          }
+        });
+        expect(res).toMatchObject(SuccessfulTerminalState);
+      });
+    })
 
-      res = await unlockAccount(authClient, { verificationCode: 'test-passcode' });
-      expect(selectAuthenticatorUnlockAccountResponse.proceed).toHaveBeenCalledWith('challenge-authenticator', {
-        credentials: {
-          passcode: 'test-passcode'
-        }
+    describe('error handling', () => {
+      it('can handle bad passcode', async () => {
+        const { 
+          authClient,
+          selectAuthenticatorUnlockAccountResponse,
+        } = testContext;
+
+        const badPasscodeResponse = IdxResponseFactory.build({
+          neededToProceed: [
+            ChallengeAuthenticatorRemediationFactory.build({
+              name: 'challenge-authenticator',
+              value: [
+                CredentialsValueFactory.build({
+                  form: {
+                    value: [
+                      PasscodeValueFactory.build({
+                        messages: IdxMessagesFactory.build({
+                          value: [
+                            {
+                              "message": "Invalid code. Try again.",
+                              "i18n": {
+                                "key": "api.authn.error.PASSCODE_INVALID",
+                                "params": []
+                              },
+                              "class": "ERROR"
+                            }
+                          ]
+                        })
+                      })
+                    ]
+                  }
+                })
+              ],
+              relatesTo: {
+                value: EmailAuthenticatorFactory.build()
+              }
+            }),
+          ]
+        });
+  
+        jest.spyOn(mocked.introspect, 'introspect')
+          .mockResolvedValueOnce(selectAuthenticatorUnlockAccountResponse)
+          .mockResolvedValueOnce(badPasscodeResponse);
+
+        jest.spyOn(selectAuthenticatorUnlockAccountResponse, 'proceed').mockResolvedValue(badPasscodeResponse);
+        jest.spyOn(badPasscodeResponse, 'proceed');
+  
+        const inputValues = {
+          username: 'myname',
+          authenticator: AuthenticatorKey.OKTA_EMAIL,
+          verificationCode: 'bad-passcode'
+        };
+    
+        let res = await unlockAccount(authClient, inputValues);
+        expect(selectAuthenticatorUnlockAccountResponse.proceed).toHaveBeenCalledWith('challenge-authenticator', {
+          credentials: {
+            passcode: 'bad-passcode'
+          }
+        });
+        expect(res).toMatchObject({
+          status: IdxStatus.PENDING,
+          messages: [
+            {
+              "message": "Invalid code. Try again.",
+              "i18n": {
+                  "key": "api.authn.error.PASSCODE_INVALID",
+                  "params": []
+              },
+              "class": "ERROR"
+            }
+          ]
+        });
       });
-      expect(res).toMatchObject(SuccessfulTerminalState);
     });
   });
 
   describe('phone authenticator', () => {
     beforeEach(() => {
-      const { 
-        introspectResponse,
-        unlockAccoutRemediationResponse,
-        accountResetTerminalResponse,
-      } = testContext;
-
       const selectAuthenticatorUnlockAccountResponse = IdxResponseFactory.build({
         neededToProceed: [
           VerifyPhoneRemediationFactory.build(),
@@ -448,292 +504,427 @@ describe('/idx/unlockAccout', () => {
         ...testContext,
         selectAuthenticatorUnlockAccountResponse,
       };
-
-      chainResponses([
-        introspectResponse,
-        unlockAccoutRemediationResponse,
-        selectAuthenticatorUnlockAccountResponse,
-        accountResetTerminalResponse
-      ]);
-      
-      jest.spyOn(introspectResponse, 'proceed');
-      jest.spyOn(unlockAccoutRemediationResponse, 'proceed');
-      jest.spyOn(selectAuthenticatorUnlockAccountResponse, 'proceed');
     });
 
-    it('can proceed', async () => {
-      const { 
-        authClient,
-        introspectResponse,
-        unlockAccoutRemediationResponse,
-        selectAuthenticatorUnlockAccountResponse,
-      } = testContext;
-
-      jest.spyOn(mocked.introspect, 'introspect')
-        .mockResolvedValueOnce(introspectResponse)
-        .mockResolvedValueOnce(unlockAccoutRemediationResponse)
-        .mockResolvedValueOnce(selectAuthenticatorUnlockAccountResponse);
+    describe('full flow', () => {
+      beforeEach(() => {
+        const { 
+          introspectResponse,
+          unlockAccoutRemediationResponse,
+          selectAuthenticatorUnlockAccountResponse,
+          accountResetTerminalResponse,
+        } = testContext;
   
-      let res = await unlockAccount(authClient, {});
-      expect(introspectResponse.proceed).toHaveBeenCalledWith('unlock-account', {});
-  
-      const inputValues = {
-        username: 'myname',
-        authenticator: AuthenticatorKey.PHONE_NUMBER
-      };
-  
-      res = await unlockAccount(authClient, inputValues);
-      expect(unlockAccoutRemediationResponse.proceed).toHaveBeenCalledWith('select-authenticator-unlock-account', {
-        identifier: 'myname',
-        authenticator: {
-          id: 'id-phone'
-        }
+        chainResponses([
+          introspectResponse,
+          unlockAccoutRemediationResponse,
+          selectAuthenticatorUnlockAccountResponse,
+          accountResetTerminalResponse
+        ]);
+        
+        jest.spyOn(introspectResponse, 'proceed');
+        jest.spyOn(unlockAccoutRemediationResponse, 'proceed');
+        jest.spyOn(selectAuthenticatorUnlockAccountResponse, 'proceed');
       });
-      expect(res).toMatchObject({
-        status: IdxStatus.PENDING,
-        nextStep: {
-          name: 'challenge-authenticator',
-          type: 'phone',
-          inputs: [
-            {
-              label: 'Enter code',
-              name: 'verificationCode',
-              required: true,
-              type: 'string'
-            }
-          ],
+  
+      it('can proceed', async () => {
+        const { 
+          authClient,
+          introspectResponse,
+          unlockAccoutRemediationResponse,
+          selectAuthenticatorUnlockAccountResponse,
+        } = testContext;
+  
+        jest.spyOn(mocked.introspect, 'introspect')
+          .mockResolvedValueOnce(introspectResponse)
+          .mockResolvedValueOnce(unlockAccoutRemediationResponse)
+          .mockResolvedValueOnce(selectAuthenticatorUnlockAccountResponse);
+    
+        let res = await unlockAccount(authClient, {});
+        expect(introspectResponse.proceed).toHaveBeenCalledWith('unlock-account', {});
+    
+        const inputValues = {
+          username: 'myname',
+          authenticator: AuthenticatorKey.PHONE_NUMBER
+        };
+    
+        res = await unlockAccount(authClient, inputValues);
+        expect(unlockAccoutRemediationResponse.proceed).toHaveBeenCalledWith('select-authenticator-unlock-account', {
+          identifier: 'myname',
           authenticator: {
-            displayName: 'Phone',
-            id: '7',
-            key: 'phone_number',
-            methods: [{ type: 'sms' }, { type: 'voice' }],
-            type: 'phone'
+            id: 'id-phone'
           }
-        }
+        });
+        expect(res).toMatchObject({
+          status: IdxStatus.PENDING,
+          nextStep: {
+            name: 'challenge-authenticator',
+            type: 'phone',
+            inputs: [
+              {
+                label: 'Enter code',
+                name: 'verificationCode',
+                required: true,
+                type: 'string'
+              }
+            ],
+            authenticator: {
+              displayName: 'Phone',
+              id: '7',
+              key: 'phone_number',
+              methods: [{ type: 'sms' }, { type: 'voice' }],
+              type: 'phone'
+            }
+          }
+        });
+  
+        res = await unlockAccount(authClient, { verificationCode: 'test-passcode' });
+        expect(selectAuthenticatorUnlockAccountResponse.proceed).toHaveBeenCalledWith('challenge-authenticator', {
+          credentials: {
+            passcode: 'test-passcode'
+          }
+        });
+        expect(res).toMatchObject(SuccessfulTerminalState);
       });
-
-      res = await unlockAccount(authClient, { verificationCode: 'test-passcode' });
-      expect(selectAuthenticatorUnlockAccountResponse.proceed).toHaveBeenCalledWith('challenge-authenticator', {
-        credentials: {
-          passcode: 'test-passcode'
-        }
+    
+      it('can auto-remediate', async () => {
+        const { 
+          authClient,
+          introspectResponse,
+          unlockAccoutRemediationResponse,
+          selectAuthenticatorUnlockAccountResponse,
+        } = testContext;
+  
+        jest.spyOn(mocked.introspect, 'introspect')
+          .mockResolvedValueOnce(introspectResponse)
+          // skip /introspect -> unlockAccountResponse, this is auto-remediated
+          .mockResolvedValueOnce(selectAuthenticatorUnlockAccountResponse);
+  
+        const inputValues = {
+          username: 'myname',
+          authenticator: AuthenticatorKey.PHONE_NUMBER,
+          verificationCode: 'test-passcode'
+        };
+    
+        let res = await unlockAccount(authClient, inputValues);
+        expect(introspectResponse.proceed).toHaveBeenCalledWith('unlock-account', {});
+        expect(unlockAccoutRemediationResponse.proceed).toHaveBeenCalledWith('select-authenticator-unlock-account', {
+          identifier: 'myname',
+          authenticator: {
+            id: 'id-phone'
+          }
+        });
+        expect(selectAuthenticatorUnlockAccountResponse.proceed).toHaveBeenCalledWith('challenge-authenticator', {
+          credentials: {
+            passcode: 'test-passcode'
+          }
+        });
+        expect(res).toMatchObject(SuccessfulTerminalState);
       });
-      expect(res).toMatchObject(SuccessfulTerminalState);
     });
-  
-    it('can auto-remediate', async () => {
-      const { 
-        authClient,
-        introspectResponse,
-        unlockAccoutRemediationResponse,
-        selectAuthenticatorUnlockAccountResponse,
-      } = testContext;
 
-      jest.spyOn(mocked.introspect, 'introspect')
-        .mockResolvedValueOnce(introspectResponse)
-        // skip /introspect -> unlockAccountResponse, this is auto-remediated
-        .mockResolvedValueOnce(selectAuthenticatorUnlockAccountResponse);
+    describe('error handling', () => {
+      it('can handle bad passcode', async () => {
+        const { 
+          authClient,
+          selectAuthenticatorUnlockAccountResponse,
+        } = testContext;
 
-      const inputValues = {
-        username: 'myname',
-        authenticator: AuthenticatorKey.PHONE_NUMBER
-      };
+        const badPasscodeResponse = IdxResponseFactory.build({
+          neededToProceed: [
+            ChallengeAuthenticatorRemediationFactory.build({
+              name: 'challenge-authenticator',
+              value: [
+                CredentialsValueFactory.build({
+                  form: {
+                    value: [
+                      PasscodeValueFactory.build({
+                        messages: IdxMessagesFactory.build({
+                          value: [
+                            {
+                              "message": "Invalid code. Try again.",
+                              "i18n": {
+                                "key": "api.authn.error.PASSCODE_INVALID",
+                                "params": []
+                              },
+                              "class": "ERROR"
+                            }
+                          ]
+                        })
+                      })
+                    ]
+                  }
+                })
+              ],
+              relatesTo: {
+                value: PhoneAuthenticatorFactory.build()
+              }
+            }),
+          ]
+        });
   
-      let res = await unlockAccount(authClient, inputValues);
-      expect(introspectResponse.proceed).toHaveBeenCalledWith('unlock-account', {});
-      expect(unlockAccoutRemediationResponse.proceed).toHaveBeenCalledWith('select-authenticator-unlock-account', {
-        identifier: 'myname',
-        authenticator: {
-          id: 'id-phone'
-        }
-      });
-      expect(res).toMatchObject({
-        status: IdxStatus.PENDING,
-        nextStep: {
-          name: 'challenge-authenticator',
-          type: 'phone',
-          inputs: [
-            {
-              label: 'Enter code',
-              name: 'verificationCode',
-              required: true,
-              type: 'string'
-            }
-          ],
-          authenticator: {
-            displayName: 'Phone',
-            id: '7',
-            key: 'phone_number',
-            methods: [{ type: 'sms' }, { type: 'voice' }],
-            type: 'phone'
+        jest.spyOn(mocked.introspect, 'introspect')
+          .mockResolvedValueOnce(selectAuthenticatorUnlockAccountResponse)
+          .mockResolvedValueOnce(badPasscodeResponse);
+
+        jest.spyOn(selectAuthenticatorUnlockAccountResponse, 'proceed').mockResolvedValue(badPasscodeResponse);
+        jest.spyOn(badPasscodeResponse, 'proceed');
+  
+        const inputValues = {
+          username: 'myname',
+          authenticator: AuthenticatorKey.PHONE_NUMBER,
+          verificationCode: 'bad-passcode'
+        };
+    
+        let res = await unlockAccount(authClient, inputValues);
+        expect(selectAuthenticatorUnlockAccountResponse.proceed).toHaveBeenCalledWith('challenge-authenticator', {
+          credentials: {
+            passcode: 'bad-passcode'
           }
-        }
+        });
+        expect(res).toMatchObject({
+          status: IdxStatus.PENDING,
+          messages: [
+            {
+              "message": "Invalid code. Try again.",
+              "i18n": {
+                  "key": "api.authn.error.PASSCODE_INVALID",
+                  "params": []
+              },
+              "class": "ERROR"
+            }
+          ]
+        });
       });
-
-      res = await unlockAccount(authClient, { verificationCode: 'test-passcode' });
-      expect(selectAuthenticatorUnlockAccountResponse.proceed).toHaveBeenCalledWith('challenge-authenticator', {
-        credentials: {
-          passcode: 'test-passcode'
-        }
-      });
-      expect(res).toMatchObject(SuccessfulTerminalState);
     });
   });
 
   describe('okta verify authenticator', () => {
     beforeEach(() => {
-      const { 
-        introspectResponse,
-        unlockAccoutRemediationResponse,
-        accountResetTerminalResponse,
-      } = testContext;
-
       const selectAuthenticatorUnlockAccountResponse = IdxResponseFactory.build({
         neededToProceed: [
           VerifyOktaVerifyRemediationFactory.build(),
         ]
       });
 
-      console.log(JSON.stringify(selectAuthenticatorUnlockAccountResponse, null, 4));
-      console.log('#######');
-      console.log(JSON.stringify(IdxResponseFactory.build({
-        neededToProceed: [
-          VerifyPhoneRemediationFactory.build(),
-        ]
-      }), null, 4));
-
       testContext = {
         ...testContext,
         selectAuthenticatorUnlockAccountResponse,
       };
-
-      chainResponses([
-        introspectResponse,
-        unlockAccoutRemediationResponse,
-        selectAuthenticatorUnlockAccountResponse,
-        accountResetTerminalResponse
-      ]);
-      
-      jest.spyOn(introspectResponse, 'proceed');
-      jest.spyOn(unlockAccoutRemediationResponse, 'proceed');
-      jest.spyOn(selectAuthenticatorUnlockAccountResponse, 'proceed');
     });
 
-    xit('can proceed', async () => {
-      const { 
-        authClient,
-        introspectResponse,
-        unlockAccoutRemediationResponse,
-        selectAuthenticatorUnlockAccountResponse,
-      } = testContext;
+    describe('full path', () => {
+      beforeEach(() => {
+        const { 
+          introspectResponse,
+          unlockAccoutRemediationResponse,
+          selectAuthenticatorUnlockAccountResponse,
+          accountResetTerminalResponse,
+        } = testContext;
 
-      jest.spyOn(mocked.introspect, 'introspect')
-        .mockResolvedValueOnce(introspectResponse)
-        .mockResolvedValueOnce(unlockAccoutRemediationResponse)
-        .mockResolvedValueOnce(selectAuthenticatorUnlockAccountResponse);
-  
-      let res = await unlockAccount(authClient, {});
-      expect(introspectResponse.proceed).toHaveBeenCalledWith('unlock-account', {});
-  
-      const inputValues = {
-        username: 'myname',
-        authenticator: AuthenticatorKey.OKTA_VERIFY_APP
-      };
-  
-      res = await unlockAccount(authClient, inputValues);
-      expect(unlockAccoutRemediationResponse.proceed).toHaveBeenCalledWith('select-authenticator-unlock-account', {
-        identifier: 'myname',
-        authenticator: {
-          id: 'id-okta-verify'
-        }
+        chainResponses([
+          introspectResponse,
+          unlockAccoutRemediationResponse,
+          selectAuthenticatorUnlockAccountResponse,
+          accountResetTerminalResponse
+        ]);
+        
+        jest.spyOn(introspectResponse, 'proceed');
+        jest.spyOn(unlockAccoutRemediationResponse, 'proceed');
+        jest.spyOn(selectAuthenticatorUnlockAccountResponse, 'proceed');
       });
-      expect(res).toMatchObject({
-        status: IdxStatus.PENDING,
-        nextStep: {
-          name: 'challenge-authenticator',
-          type: 'app',
-          inputs: [
-            {
-              name: 'verificationCode',
-              required: true,
-              type: 'string'
-            }
-          ],
+
+      xit('can proceed', async () => {
+        const { 
+          authClient,
+          introspectResponse,
+          unlockAccoutRemediationResponse,
+          selectAuthenticatorUnlockAccountResponse,
+        } = testContext;
+
+        jest.spyOn(mocked.introspect, 'introspect')
+          .mockResolvedValueOnce(introspectResponse)
+          .mockResolvedValueOnce(unlockAccoutRemediationResponse)
+          .mockResolvedValueOnce(selectAuthenticatorUnlockAccountResponse);
+    
+        let res = await unlockAccount(authClient, {});
+        expect(introspectResponse.proceed).toHaveBeenCalledWith('unlock-account', {});
+    
+        const inputValues = {
+          username: 'myname',
+          authenticator: AuthenticatorKey.OKTA_VERIFY_APP
+        };
+    
+        res = await unlockAccount(authClient, inputValues);
+        expect(unlockAccoutRemediationResponse.proceed).toHaveBeenCalledWith('select-authenticator-unlock-account', {
+          identifier: 'myname',
           authenticator: {
-            displayName: 'Okta Verify',
-            id: '8',
-            key: 'okta_verify',
-            methods: [{ type: 'push' }, { type: 'totp' }],
-            type: 'app'
+            id: 'id-okta-verify'
           }
-        }
-      });
+        });
+        expect(res).toMatchObject({
+          status: IdxStatus.PENDING,
+          nextStep: {
+            name: 'challenge-authenticator',
+            type: 'app',
+            inputs: [
+              {
+                name: 'verificationCode',
+                required: true,
+                type: 'string'
+              }
+            ],
+            authenticator: {
+              displayName: 'Okta Verify',
+              id: '8',
+              key: 'okta_verify',
+              methods: [{ type: 'push' }, { type: 'totp' }],
+              type: 'app'
+            }
+          }
+        });
 
-      res = await unlockAccount(authClient, { verificationCode: 'test-passcode' });
-      expect(selectAuthenticatorUnlockAccountResponse.proceed).toHaveBeenCalledWith('challenge-authenticator', {
-        credentials: {
-          passcode: 'test-passcode'
-        }
+        res = await unlockAccount(authClient, { verificationCode: 'test-passcode' });
+        expect(selectAuthenticatorUnlockAccountResponse.proceed).toHaveBeenCalledWith('challenge-authenticator', {
+          credentials: {
+            passcode: 'test-passcode'
+          }
+        });
+        expect(res).toMatchObject(SuccessfulTerminalState);
       });
-      expect(res).toMatchObject(SuccessfulTerminalState);
+    
+      xit('can auto-remediate', async () => {
+        const { 
+          authClient,
+          introspectResponse,
+          unlockAccoutRemediationResponse,
+          selectAuthenticatorUnlockAccountResponse,
+        } = testContext;
+
+        jest.spyOn(mocked.introspect, 'introspect')
+          .mockResolvedValueOnce(introspectResponse)
+          // skip /introspect -> unlockAccountResponse, this is auto-remediated
+          .mockResolvedValueOnce(selectAuthenticatorUnlockAccountResponse);
+
+        const inputValues = {
+          username: 'myname',
+          authenticator: AuthenticatorKey.OKTA_VERIFY_APP
+        };
+    
+        let res = await unlockAccount(authClient, inputValues);
+        expect(introspectResponse.proceed).toHaveBeenCalledWith('unlock-account', {});
+        expect(unlockAccoutRemediationResponse.proceed).toHaveBeenCalledWith('select-authenticator-unlock-account', {
+          identifier: 'myname',
+          authenticator: {
+            id: 'id-okta-verify'
+          }
+        });
+        expect(res).toMatchObject({
+          status: IdxStatus.PENDING,
+          nextStep: {
+            name: 'challenge-authenticator',
+            type: 'app',
+            inputs: [
+              {
+                label: 'Enter code',
+                name: 'verificationCode',
+                required: true,
+                type: 'string'
+              }
+            ],
+            authenticator: {
+              displayName: 'Okta Verify',
+              id: '8',
+              key: 'okta_verify',
+              methods: [{ type: 'push' }, { type: 'totp' }],
+              type: 'app'
+            }
+          }
+        });
+
+        res = await unlockAccount(authClient, { verificationCode: 'test-passcode' });
+        expect(selectAuthenticatorUnlockAccountResponse.proceed).toHaveBeenCalledWith('challenge-authenticator', {
+          credentials: {
+            passcode: 'test-passcode'
+          }
+        });
+        expect(res).toMatchObject(SuccessfulTerminalState);
+      });
     });
-  
-    xit('can auto-remediate', async () => {
-      const { 
-        authClient,
-        introspectResponse,
-        unlockAccoutRemediationResponse,
-        selectAuthenticatorUnlockAccountResponse,
-      } = testContext;
 
-      jest.spyOn(mocked.introspect, 'introspect')
-        .mockResolvedValueOnce(introspectResponse)
-        // skip /introspect -> unlockAccountResponse, this is auto-remediated
-        .mockResolvedValueOnce(selectAuthenticatorUnlockAccountResponse);
+    describe('error handling', () => {
+      xit('can handle bad passcode', async () => {
+        const { 
+          authClient,
+          selectAuthenticatorUnlockAccountResponse,
+        } = testContext;
 
-      const inputValues = {
-        username: 'myname',
-        authenticator: AuthenticatorKey.OKTA_VERIFY_APP
-      };
-  
-      let res = await unlockAccount(authClient, inputValues);
-      expect(introspectResponse.proceed).toHaveBeenCalledWith('unlock-account', {});
-      expect(unlockAccoutRemediationResponse.proceed).toHaveBeenCalledWith('select-authenticator-unlock-account', {
-        identifier: 'myname',
-        authenticator: {
-          id: 'id-okta-verify'
-        }
-      });
-      expect(res).toMatchObject({
-        status: IdxStatus.PENDING,
-        nextStep: {
-          name: 'challenge-authenticator',
-          type: 'app',
-          inputs: [
-            {
-              label: 'Enter code',
-              name: 'verificationCode',
-              required: true,
-              type: 'string'
-            }
-          ],
-          authenticator: {
-            displayName: 'Okta Verify',
-            id: '8',
-            key: 'okta_verify',
-            methods: [{ type: 'push' }, { type: 'totp' }],
-            type: 'app'
+        const badPasscodeResponse = IdxResponseFactory.build({
+          neededToProceed: [
+            ChallengeAuthenticatorRemediationFactory.build({
+              name: 'challenge-authenticator',
+              value: [
+                CredentialsValueFactory.build({
+                  form: {
+                    value: [
+                      PasscodeValueFactory.build({
+                        messages: IdxMessagesFactory.build({
+                          value: [
+                            {
+                              "message": "Invalid code. Try again.",
+                              "i18n": {
+                                "key": "api.authn.error.PASSCODE_INVALID",
+                                "params": []
+                              },
+                              "class": "ERROR"
+                            }
+                          ]
+                        })
+                      })
+                    ]
+                  }
+                })
+              ],
+              relatesTo: {
+                value: OktaVerifyAuthenticatorFactory.build()
+              }
+            }),
+          ]
+        });
+
+        jest.spyOn(mocked.introspect, 'introspect')
+          .mockResolvedValueOnce(selectAuthenticatorUnlockAccountResponse)
+          .mockResolvedValueOnce(badPasscodeResponse);
+
+        jest.spyOn(selectAuthenticatorUnlockAccountResponse, 'proceed').mockResolvedValue(badPasscodeResponse);
+        jest.spyOn(badPasscodeResponse, 'proceed');
+
+        const inputValues = {
+          username: 'myname',
+          authenticator: AuthenticatorKey.OKTA_VERIFY_APP,
+          verificationCode: 'bad-passcode'
+        };
+    
+        let res = await unlockAccount(authClient, inputValues);
+        expect(selectAuthenticatorUnlockAccountResponse.proceed).toHaveBeenCalledWith('challenge-authenticator', {
+          credentials: {
+            passcode: 'bad-passcode'
           }
-        }
+        });
+        expect(res).toMatchObject({
+          status: IdxStatus.PENDING,
+          messages: [
+            {
+              "message": "Invalid code. Try again.",
+              "i18n": {
+                  "key": "api.authn.error.PASSCODE_INVALID",
+                  "params": []
+              },
+              "class": "ERROR"
+            }
+          ]
+        });
       });
-
-      res = await unlockAccount(authClient, { verificationCode: 'test-passcode' });
-      expect(selectAuthenticatorUnlockAccountResponse.proceed).toHaveBeenCalledWith('challenge-authenticator', {
-        credentials: {
-          passcode: 'test-passcode'
-        }
-      });
-      expect(res).toMatchObject(SuccessfulTerminalState);
     });
   });
 });
