@@ -288,5 +288,5 @@ export interface IdxAPI {
   getFlow(): FlowIdentifier;
   setFlow(flow: FlowIdentifier): void;
   canProceed(options?: { state?: string }): boolean;
-  unlockAccount: (options?: PasswordRecoveryOptions) => Promise<IdxTransaction>;
+  unlockAccount: (options?: AccountUnlockOptions) => Promise<IdxTransaction>;
 }

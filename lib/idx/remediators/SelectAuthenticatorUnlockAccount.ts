@@ -12,8 +12,6 @@
 
 
 import { SelectAuthenticator, SelectAuthenticatorValues } from './Base/SelectAuthenticator';
-import { Authenticator, AuthenticatorKey } from '../types';
-import { IdxRemediation } from '../types/idx-js';
 
 export type SelectAuthenticatorUnlockAccountValues = SelectAuthenticatorValues & {
   identifier?: string;
@@ -29,10 +27,6 @@ export class SelectAuthenticatorUnlockAccount extends SelectAuthenticator {
     identifier: ['username']
   }
 
-  // constructor(remediation: IdxRemediation, values: SelectAuthenticatorValues = {}) {
-  //   super(remediation, values);
-  // }
-
   canRemediate() {
     // TODO:
     const { identifier } = this.getData();
@@ -44,7 +38,4 @@ export class SelectAuthenticatorUnlockAccount extends SelectAuthenticator {
     return { name: 'username', key: 'string' };
   }
 
-  // getInputAuthenticator () {
-  //   return undefined;
-  // }
 }

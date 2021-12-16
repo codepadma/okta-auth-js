@@ -51,12 +51,12 @@ const SuccessfulTerminalState = {
   status: IdxStatus.TERMINAL,
   messages: [
     {
-      "message": "Your account is now unlocked!",
-      "i18n": {
-          "key": "selfservice.unlock_user.success.message",
-          "params": []
+      'message': 'Your account is now unlocked!',
+      'i18n': {
+          'key': 'selfservice.unlock_user.success.message',
+          'params': []
       },
-      "class": "INFO"
+      'class': 'INFO'
     }
   ]
 };
@@ -151,7 +151,7 @@ describe('/idx/unlockAccout', () => {
           ]
         })
       ]
-    })
+    });
 
     const identifyResponse = IdxResponseFactory.build({
       neededToProceed: [
@@ -175,12 +175,12 @@ describe('/idx/unlockAccout', () => {
         messages: IdxMessagesFactory.build({
           value: [
             {
-              "message": "Your account is now unlocked!",
-              "i18n": {
-                  "key": "selfservice.unlock_user.success.message",
-                  "params": []
+              'message': 'Your account is now unlocked!',
+              'i18n': {
+                  'key': 'selfservice.unlock_user.success.message',
+                  'params': []
               },
-              "class": "INFO"
+              'class': 'INFO'
             }
           ]
         })
@@ -212,7 +212,7 @@ describe('/idx/unlockAccout', () => {
 
     jest.spyOn(mocked.introspect, 'introspect')
       .mockResolvedValueOnce(introspectResponse)
-      .mockResolvedValueOnce(unlockAccoutRemediationResponse)
+      .mockResolvedValueOnce(unlockAccoutRemediationResponse);
     
     jest.spyOn(introspectResponse, 'proceed');
     jest.spyOn(unlockAccoutRemediationResponse, 'proceed');
@@ -363,7 +363,7 @@ describe('/idx/unlockAccout', () => {
             ],
             authenticator: {
               displayName: 'Email',
-              id: '6',
+              id: expect.any(String),
               key: 'okta_email',
               methods: [{ type: 'email' }],
               type: 'email'
@@ -414,7 +414,7 @@ describe('/idx/unlockAccout', () => {
         });
         expect(res).toMatchObject(SuccessfulTerminalState);
       });
-    })
+    });
 
     describe('error handling', () => {
       it('can handle bad passcode', async () => {
@@ -435,12 +435,12 @@ describe('/idx/unlockAccout', () => {
                         messages: IdxMessagesFactory.build({
                           value: [
                             {
-                              "message": "Invalid code. Try again.",
-                              "i18n": {
-                                "key": "api.authn.error.PASSCODE_INVALID",
-                                "params": []
+                              'message': 'Invalid code. Try again.',
+                              'i18n': {
+                                'key': 'api.authn.error.PASSCODE_INVALID',
+                                'params': []
                               },
-                              "class": "ERROR"
+                              'class': 'ERROR'
                             }
                           ]
                         })
@@ -479,12 +479,12 @@ describe('/idx/unlockAccout', () => {
           status: IdxStatus.PENDING,
           messages: [
             {
-              "message": "Invalid code. Try again.",
-              "i18n": {
-                  "key": "api.authn.error.PASSCODE_INVALID",
-                  "params": []
+              'message': 'Invalid code. Try again.',
+              'i18n': {
+                  'key': 'api.authn.error.PASSCODE_INVALID',
+                  'params': []
               },
-              "class": "ERROR"
+              'class': 'ERROR'
             }
           ]
         });
@@ -570,7 +570,7 @@ describe('/idx/unlockAccout', () => {
             ],
             authenticator: {
               displayName: 'Phone',
-              id: '7',
+              id: expect.any(String),
               key: 'phone_number',
               methods: [{ type: 'sms' }, { type: 'voice' }],
               type: 'phone'
@@ -642,12 +642,12 @@ describe('/idx/unlockAccout', () => {
                         messages: IdxMessagesFactory.build({
                           value: [
                             {
-                              "message": "Invalid code. Try again.",
-                              "i18n": {
-                                "key": "api.authn.error.PASSCODE_INVALID",
-                                "params": []
+                              'message': 'Invalid code. Try again.',
+                              'i18n': {
+                                'key': 'api.authn.error.PASSCODE_INVALID',
+                                'params': []
                               },
-                              "class": "ERROR"
+                              'class': 'ERROR'
                             }
                           ]
                         })
@@ -686,12 +686,12 @@ describe('/idx/unlockAccout', () => {
           status: IdxStatus.PENDING,
           messages: [
             {
-              "message": "Invalid code. Try again.",
-              "i18n": {
-                  "key": "api.authn.error.PASSCODE_INVALID",
-                  "params": []
+              'message': 'Invalid code. Try again.',
+              'i18n': {
+                  'key': 'api.authn.error.PASSCODE_INVALID',
+                  'params': []
               },
-              "class": "ERROR"
+              'class': 'ERROR'
             }
           ]
         });
@@ -776,7 +776,7 @@ describe('/idx/unlockAccout', () => {
             ],
             authenticator: {
               displayName: 'Okta Verify',
-              id: '8',
+              id: expect.any(String),
               key: 'okta_verify',
               methods: [{ type: 'push' }, { type: 'totp' }],
               type: 'app'
@@ -834,7 +834,7 @@ describe('/idx/unlockAccout', () => {
             ],
             authenticator: {
               displayName: 'Okta Verify',
-              id: '8',
+              id: expect.any(String),
               key: 'okta_verify',
               methods: [{ type: 'push' }, { type: 'totp' }],
               type: 'app'
@@ -871,12 +871,12 @@ describe('/idx/unlockAccout', () => {
                         messages: IdxMessagesFactory.build({
                           value: [
                             {
-                              "message": "Invalid code. Try again.",
-                              "i18n": {
-                                "key": "api.authn.error.PASSCODE_INVALID",
-                                "params": []
+                              'message': 'Invalid code. Try again.',
+                              'i18n': {
+                                'key': 'api.authn.error.PASSCODE_INVALID',
+                                'params': []
                               },
-                              "class": "ERROR"
+                              'class': 'ERROR'
                             }
                           ]
                         })
@@ -915,12 +915,12 @@ describe('/idx/unlockAccout', () => {
           status: IdxStatus.PENDING,
           messages: [
             {
-              "message": "Invalid code. Try again.",
-              "i18n": {
-                  "key": "api.authn.error.PASSCODE_INVALID",
-                  "params": []
+              'message': 'Invalid code. Try again.',
+              'i18n': {
+                  'key': 'api.authn.error.PASSCODE_INVALID',
+                  'params': []
               },
-              "class": "ERROR"
+              'class': 'ERROR'
             }
           ]
         });

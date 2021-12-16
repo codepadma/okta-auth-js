@@ -17,7 +17,8 @@ import {
   UnlockAccount,
   SelectAuthenticatorUnlockAccount,
   SelectAuthenticatorAuthenticate,
-  ChallengeAuthenticator
+  ChallengeAuthenticator,
+  AuthenticatorVerificationData
 } from '../remediators';
 
 export const AccountUnlockFlow: RemediationFlow = {
@@ -26,4 +27,5 @@ export const AccountUnlockFlow: RemediationFlow = {
   'select-authenticator-unlock-account': SelectAuthenticatorUnlockAccount,
   'select-authenticator-authenticate': SelectAuthenticatorAuthenticate,
   'challenge-authenticator': ChallengeAuthenticator,
+  'authenticator-verification-data': AuthenticatorVerificationData,
 };

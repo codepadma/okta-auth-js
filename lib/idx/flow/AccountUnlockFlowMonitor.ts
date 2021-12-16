@@ -14,6 +14,7 @@
 import { FlowMonitor } from './FlowMonitor';
 
 export class AccountUnlockFlowMonitor extends FlowMonitor {
+  /* eslint complexity: [2, 15] */
   isRemediatorCandidate(remediator, remediations?, values?) {
     const prevRemediatorName = this.previousRemediator?.getName();
     const remediatorName = remediator.getName();
@@ -35,8 +36,9 @@ export class AccountUnlockFlowMonitor extends FlowMonitor {
     if (remediatorName === 'select-authenticator-authenticate' 
       && [
         'unlock-account',
-        'select-authenticator-unlock-account',
-        'challenge-authenticator'
+        // 'select-authenticator-unlock-account',
+        'challenge-authenticator',
+        'select-authenticator-authenticate'
       ].includes(prevRemediatorName)) {
       return false;
     }
@@ -58,6 +60,16 @@ export class AccountUnlockFlowMonitor extends FlowMonitor {
       return false;
     }
 
+    if (remediatorName === 'authenticator-verification-data' 
+      && [
+        'identify',
+        'unlock-account',
+        'challenge-authenticator'
+      ].includes(prevRemediatorName)) {
+      return false;
+    }
+
+    // TODO: maybe?
     if (remediatorName === 'select-authenticator-authenticate'
       && remediations.some(({ name }) => name === 'challenge-authenticator')) {
       return false;

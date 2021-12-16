@@ -50,6 +50,7 @@ export class Remediator {
   }
 
   // Override this method to provide custom check
+  /* eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars */
   canRemediate(flow?: FlowIdentifier): boolean {
     if (!this.map) {
       return false;
