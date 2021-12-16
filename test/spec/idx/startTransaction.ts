@@ -63,6 +63,9 @@ describe('idx/startTransaction', () => {
       idx: {
         getFlow: () => {},
         setFlow: () => {}
+      },
+      token: {
+        exchangeCodeForTokens: () => {}
       }
     };
 
@@ -73,7 +76,7 @@ describe('idx/startTransaction', () => {
       state: transactionMeta.state
     });
     jest.spyOn(mocked.introspect, 'introspect').mockResolvedValue(idxResponse);
-    jest.spyOn(mocked.remediate, 'remediate').mockResolvedValue({});
+    jest.spyOn(mocked.remediate, 'remediate').mockResolvedValue({ idxResponse });
     jest.spyOn(mocked.transactionMeta, 'getSavedTransactionMeta').mockReturnValue(undefined);
     testContext = {
       issuer,
@@ -81,25 +84,73 @@ describe('idx/startTransaction', () => {
       redirectUri,
       stateHandle,
       transactionMeta,
-      authClient
+      authClient,
+      idxResponse
     };
   });
 
-  it('calls interact, introspect, but not remediate', async () => {
-    const { authClient } = testContext;
+  it('calls interact, introspect, and remediate', async () => {
+    const { authClient, idxResponse } = testContext;
     await startTransaction(authClient);
-    expect(mocked.interact.interact).toHaveBeenCalledWith(authClient, {});
+    expect(mocked.interact.interact).toHaveBeenCalledWith(authClient, { withCredentials: true });
     expect(mocked.introspect.introspect).toHaveBeenCalledWith(authClient, { 
       interactionHandle: 'meta-interactionHandle' 
     });
-    expect(mocked.remediate.remediate).not.toHaveBeenCalled();
+    expect(mocked.remediate.remediate).toHaveBeenCalledWith(
+      // IDX response
+      idxResponse,
+      // values
+      {
+        exchangeCodeForTokens: false,
+        stateHandle: 'unknown-stateHandle'
+      },
+      // flowMonitor
+      expect.any(Object)
+    );
   });
 
-  it('returns transaction in pending status', async () => {
-    const { authClient } = testContext;
-    const res = await startTransaction(authClient);
-    expect(res.status).toEqual(IdxStatus.PENDING);
+  it('does not attempt to exchange code for tokens', async () => {
+    const { authClient, idxResponse } = testContext;
+    idxResponse.interactionCode = 'fake';
+    jest.spyOn(authClient.token, 'exchangeCodeForTokens');
+    await startTransaction(authClient);
+    expect(authClient.token.exchangeCodeForTokens).not.toHaveBeenCalled();
   });
+
+  describe('response', () => {
+    it('returns a transaction object', async () => {
+      const { authClient, idxResponse, transactionMeta } = testContext;
+      const res = await startTransaction(authClient);
+      expect(res).toEqual(Object.assign({}, idxResponse, {
+        status: 'PENDING',
+        availableSteps: [],
+        enabledFeatures: [],
+        meta: transactionMeta,
+        toPersist: undefined
+      }));
+    });
+    it('exposes transaction meta in the response', async () => {
+      const { authClient, transactionMeta } = testContext;
+      const res = await startTransaction(authClient);
+      expect(res.meta).toEqual(transactionMeta);
+    });
+  
+    it('if there is no interactionCode on the response, returns transaction in pending status', async () => {
+      const { authClient } = testContext;
+      const res = await startTransaction(authClient);
+      expect(res.status).toEqual(IdxStatus.PENDING);
+    });
+
+    it('if there is an interactionCode on the response, returns transaction with status=SUCCESS', async () => {
+      const { authClient, idxResponse } = testContext;
+      idxResponse.interactionCode = 'fake';
+  
+      const res = await startTransaction(authClient);
+      expect(res.status).toEqual(IdxStatus.SUCCESS);
+    });
+
+  });
+
 
   it('has password-recovery feature enabled with currentAuthenticator-recover action', async () => {
     const idxResponse = IdxResponseFactory.build({
@@ -159,12 +210,6 @@ describe('idx/startTransaction', () => {
         name: 'select-enroll-profile'
       }
     ]);
-  });
-
-  it('exposes transaction meta in the response', async () => {
-    const { authClient, transactionMeta } = testContext;
-    const res = await startTransaction(authClient);
-    expect(res.meta).toEqual(transactionMeta);
   });
 
 });

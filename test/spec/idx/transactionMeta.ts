@@ -24,6 +24,7 @@ import {
 jest.mock('../../../lib/util', () => {
   const orig = jest.requireActual('../../../lib/util');
   return {
+    removeNils: orig.removeNils,
     removeTrailingSlash: orig.removeTrailingSlash,
     warn: () => {}
   };

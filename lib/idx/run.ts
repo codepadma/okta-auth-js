@@ -139,10 +139,10 @@ export async function run(
     enabledFeatures = getEnabledFeatures(idxResponse);
     availableSteps = getAvailableSteps(idxResponse.neededToProceed);
     
-    if (!remediators && !actions) {
-      // handle start transaction
-      meta = metaFromResp;
-    } else {
+    // Include meta in the transaction response
+    meta = metaFromResp;
+
+    if (remediators || actions) {
       const values: remediators.RemediationValues = { 
         ...options, 
         stateHandle: idxResponse.rawIdxState.stateHandle 

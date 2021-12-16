@@ -22,6 +22,7 @@ export async function startTransaction(
   authClient.transactionManager.clear();
 
   return run(authClient, {
+    exchangeCodeForTokens: false,
     ...options
   });
 }
