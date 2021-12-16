@@ -22,21 +22,6 @@ export class FlowMonitor {
     this.authClient = authClient;
   }
 
-  // detect in-memory loop
-  loopDetected(step: string): boolean {
-    if (!this.previousStep) {
-      this.previousStep = step;
-      return false;
-    }
-
-    if (this.previousStep === step) {
-      return true;
-    }
-
-    this.previousStep = step;
-    return false;
-  }
-
   async trackRemediations(name: string) {
     let meta = await getTransactionMeta(this.authClient);
     const remediations = meta.remediations || [];

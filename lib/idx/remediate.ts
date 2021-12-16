@@ -180,10 +180,6 @@ export async function remediate(
     for (let action of actions) {
       let valuesWithoutExecutedAction = removeActionFromValues(values);
       if (typeof idxResponse.actions[action] === 'function') {
-        if (flowMonitor.loopDetected(action)) {
-          throw new AuthSdkError(`Remediation runs into loop, break!!! remediation: ${action}`);
-        }
-
         try {
           idxResponse = await idxResponse.actions[action]();
         } catch (e) {
@@ -207,11 +203,6 @@ export async function remediate(
     `);
   }
 
-  if (flowMonitor.loopDetected(name)) {
-    throw new AuthSdkError(`Remediation runs into loop, break!!! remediation: ${name}`);
-  }
-
-  // Recursive loop breaker
   // Return next step to the caller
   if (!remediator.canRemediate()) {
     const nextStep = getNextStep(remediator, idxResponse);
