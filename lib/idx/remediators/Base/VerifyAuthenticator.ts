@@ -13,14 +13,21 @@
 
 import { Remediator, RemediationValues } from './Remediator';
 import { getAuthenticator, Authenticator } from '../../authenticator';
-import { IdxRemediation } from '../../types/idx-js';
+import { IdxRemediation, IdxContext } from '../../types/idx-js';
+import { NextStep } from '../../types';
 
 export interface VerifyAuthenticatorValues extends RemediationValues {
   verificationCode?: string;
   password?: string;
+  // Security question
   questionKey?: string;
   question?: string;
   answer?: string;
+  // Webauthn
+  clientData?: string;
+  attestation?: string;
+  authenticatorData?: string;
+  signatureData?: string;
 }
 
 // Base class - DO NOT expose static remediationName
@@ -36,6 +43,16 @@ export class VerifyAuthenticator extends Remediator {
   constructor(remediation: IdxRemediation, values: RemediationValues = {}) {
     super(remediation, values);
     this.authenticator = getAuthenticator(remediation);
+  }
+
+  getNextStep(context?: IdxContext): NextStep {
+    const nextStep = super.getNextStep(context);
+    const authenticatorEnrollments = context?.authenticatorEnrollments?.value;
+
+    return {
+      ...nextStep,
+      authenticatorEnrollments
+    };
   }
 
   canRemediate() {

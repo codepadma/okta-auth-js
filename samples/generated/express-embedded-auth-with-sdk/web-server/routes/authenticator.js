@@ -445,11 +445,9 @@ router.get('/enroll-authenticator/webauthn', async (req, res) => {
 router.post('/enroll-authenticator/webauthn', async (req, res, next) => {
   const { clientData, attestation } = req.body;
   const authClient = getAuthClient(req);
-  const transaction = await authClient.idx.proceed({ 
-    security: {
-      clientData,
-      attestation
-    },
+  const transaction = await authClient.idx.proceed({
+    clientData,
+    attestation
   });
   handleTransaction({ req, res, next, authClient, transaction });
 });
@@ -467,12 +465,10 @@ router.get('/challenge-authenticator/webauthn', async (req, res) => {
 router.post('/challenge-authenticator/webauthn', async (req, res, next) => {
   const { clientData, authenticatorData, signatureData } = req.body;
   const authClient = getAuthClient(req);
-  const transaction = await authClient.idx.proceed({ 
-    security: {
-      clientData,
-      authenticatorData,
-      signatureData
-    },
+  const transaction = await authClient.idx.proceed({
+    clientData,
+    authenticatorData,
+    signatureData
   });
   handleTransaction({ req, res, next, authClient, transaction });
 });
