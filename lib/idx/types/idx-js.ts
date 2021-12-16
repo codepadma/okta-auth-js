@@ -74,7 +74,7 @@ export interface IdxAuthenticator {
       extensions?: {
         appid: string;
       };
-    }
+    };
   };
   credentialId?: string;
 }
