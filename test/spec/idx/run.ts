@@ -83,9 +83,6 @@ describe('idx/run', () => {
         'fake': true
       },
       actions: [],
-      flowMonitor: {
-        isFinished: jest.fn().mockResolvedValue(true)
-      }
     };
     testContext = {
       idxResponse,
@@ -284,24 +281,6 @@ describe('idx/run', () => {
         status: IdxStatus.SUCCESS,
         tokens: tokenResponse.tokens,
       });
-    });
-
-    it('catches error when the flow not suppose to be finished', async () => {
-      const { authClient, options } = testContext; 
-      options.flowMonitor = {
-        isFinished: jest.fn().mockResolvedValue(false)
-      };
-
-      jest.spyOn(authClient.transactionManager, 'load');
-      jest.spyOn(authClient.transactionManager, 'clear');
-      jest.spyOn(authClient.token, 'exchangeCodeForTokens');
-
-      const res = await run(authClient, options);
-      expect(authClient.transactionManager.clear).toHaveBeenCalledWith();
-      expect(authClient.token.exchangeCodeForTokens).not.toHaveBeenCalledWith();
-      expect(res.status).toEqual(IdxStatus.FAILURE);
-      expect(res.error instanceof AuthSdkError).toBeTruthy();
-      expect((res.error as AuthSdkError).message).toEqual('Current flow is not supported, check policy settings in your org.');
     });
 
     it('catches errors from exchangeCodeForTokens and clears storage', async () => {

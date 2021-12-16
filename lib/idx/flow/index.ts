@@ -11,11 +11,7 @@
  */
 
 export * from './AuthenticationFlow';
-export * from './AuthenticationFlowMonitor';
-export * from './FlowMonitor';
 export * from './FlowSpecification';
 export * from './PasswordRecoveryFlow';
-export * from './PasswordRecoveryFlowMonitor';
 export * from './RegistrationFlow';
-export * from './RegistrationFlowMonitor';
 export * from './RemediationFlow';

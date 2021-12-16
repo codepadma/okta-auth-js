@@ -156,7 +156,7 @@ export async function remediate(
   options: RunOptions
 ): Promise<RemediationResponse> {
   let { neededToProceed, interactionCode } = idxResponse;
-  const { remediators, flowMonitor } = options;
+  const { remediators } = options;
 
   // If the response contains an interaction code, there is no need to remediate
   if (interactionCode) {
@@ -213,9 +213,6 @@ export async function remediate(
   try {
     idxResponse = await idxResponse.proceed(name, data);
 
-    // Track succeed remediations in the current transaction
-    await flowMonitor.trackRemediations(name);
-    
     // Successfully get interaction code
     if (idxResponse.interactionCode) {
       return { idxResponse };
