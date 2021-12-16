@@ -30,7 +30,7 @@ router.get('/login', (req, res, next) => {
         codeChallenge, 
         codeChallengeMethod, 
         state,
-      } = meta;
+      } = (meta || {});
 
       console.log('renderLoginWithWidget: using interaction handle: ', interactionHandle);
       const { clientId, redirectUri, issuer, scopes } = getConfig().webServer.oidc;

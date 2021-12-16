@@ -699,7 +699,7 @@ describe('/idx/unlockAccout', () => {
     });
   });
 
-  describe('okta verify authenticator', () => {
+  describe.skip('okta verify authenticator', () => {
     beforeEach(() => {
       const selectAuthenticatorUnlockAccountResponse = IdxResponseFactory.build({
         neededToProceed: [
