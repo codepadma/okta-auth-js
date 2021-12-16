@@ -25,7 +25,7 @@ describe('E2E logout', () => {
     });
 
     describe('logoutApp', () => {
-      fit('can clear app session, keeping remote SSO session open', async () => {
+      it('can clear app session, keeping remote SSO session open', async () => {
         await TestApp.logoutApp();
   
         // We should still be logged into Okta
@@ -42,7 +42,7 @@ describe('E2E logout', () => {
     });
 
     describe('logoutRedirect', () => {
-      fit('can logout from okta, ending remote user session', async() => {
+      it('can logout from okta, ending remote user session', async() => {
         await TestApp.assertIdToken();
         await TestApp.logoutRedirect();
   
@@ -55,7 +55,7 @@ describe('E2E logout', () => {
         await switchToMainWindow();
       });
   
-      fit('no idToken: can logout from okta (using XHR fallback) and end back to the application', async () => {
+      it('no idToken: can logout from okta (using XHR fallback) and end back to the application', async () => {
         await TestApp.clearTokens();
         await TestApp.logoutRedirect();
 
@@ -70,7 +70,7 @@ describe('E2E logout', () => {
     });
 
     describe('logoutXHR', () => {
-      fit('can logout from okta using XHR, ending remote user session', async() => {
+      it('can logout from okta using XHR, ending remote user session', async() => {
         await TestApp.logoutXHR();
   
         // We should not be logged into Okta

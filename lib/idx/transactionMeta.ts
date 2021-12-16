@@ -11,7 +11,7 @@
  */
 
 import { OktaAuth, IdxTransactionMeta, TransactionMetaOptions } from '../types';
-import { warn } from '../util';
+import { removeNils, warn } from '../util';
 import { getOAuthUrls } from '../oidc';
 
 // Calculate new values
@@ -71,6 +71,7 @@ export function hasSavedInteractionHandle(authClient: OktaAuth, options?: Transa
 
 // Returns the saved transaction meta, if it exists and is valid
 export function getSavedTransactionMeta(authClient: OktaAuth, options?: TransactionMetaOptions): IdxTransactionMeta {
+  options = removeNils(options);
   options = { ...authClient.options, ...options }; // local options override SDK options
   let savedMeta;
   try {
@@ -99,6 +100,7 @@ export async function getTransactionMeta(
   authClient: OktaAuth,
   options?: TransactionMetaOptions
 ): Promise<IdxTransactionMeta> {
+  options = removeNils(options);
   options = { ...authClient.options, ...options }; // local options override SDK options
   // Load existing transaction meta from storage
   const validExistingMeta = getSavedTransactionMeta(authClient, options);

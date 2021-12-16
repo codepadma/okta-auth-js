@@ -603,7 +603,7 @@ class TestApp {
     const { state, otp } = parseEmailVerifyCallback(window.location.search);
     await this.render(true);
     if (this.oktaAuth.idx.canProceed({ state })) {
-      return this.renderWidget({ state });
+      return this.renderWidget({ state, otp });
     }
     const error = new Error(`Enter the OTP code in the original tab: ${otp}`);
     this.renderError(error);
