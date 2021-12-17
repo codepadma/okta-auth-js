@@ -157,37 +157,6 @@ export interface IdxContext {
   };
 }
 
-export interface IdxContext {
-  version: string;
-  stateHandle: string;
-  expiresAt: string;
-  intent: string;
-  currentAuthenticator: {
-    type: string;
-    value: IdxAuthenticator;
-  };
-  authenticators: {
-    type: string;
-    value: IdxAuthenticator[];
-  };
-  authenticatorEnrollments: {
-    type: string;
-    value: IdxAuthenticator[];
-  };
-  enrollmentAuthenticator: {
-    type: string;
-    value: IdxAuthenticator;
-  };
-  user: {
-    type: string;
-    value: Record<string, unknown>;
-  };
-  app: {
-    type: string;
-    value: Record<string, unknown>;
-  };
-}
-
 export interface IdxMessage {
   message: string;
   class: string;
