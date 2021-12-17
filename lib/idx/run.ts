@@ -156,14 +156,15 @@ export async function run(
         canceled,
         messages: messagesFromResp,
       } = await remediate(idxResponse, values, { remediators, actions, flowMonitor });
+      idxResponse = idxResponseFromResp || idxResponse;
 
       // Track fields from remediation response
       nextStep = nextStepFromResp;
       messages = messagesFromResp;
 
       // Save intermediate idx response in storage to reduce introspect call
-      if (nextStep && idxResponseFromResp) {
-        authClient.transactionManager.saveIdxResponse(idxResponseFromResp.rawIdxState);
+      if (nextStep) {
+        authClient.transactionManager.saveIdxResponse(idxResponse.rawIdxState);
       }
 
       if (terminal) {
@@ -173,14 +174,14 @@ export async function run(
       } if (canceled) {
         status = IdxStatus.CANCELED;
         shouldClearTransaction = true;
-      } else if (idxResponseFromResp?.interactionCode) { 
+      } else if (idxResponse?.interactionCode) { 
         // Flows may end with interactionCode before the key remediation being hit
         // Double check if flow is finished to mitigate confusion with the wrapper methods
         if (!(await flowMonitor.isFinished())) {
           throw new AuthSdkError('Current flow is not supported, check policy settings in your org.');
         }
 
-        interactionCode = idxResponseFromResp.interactionCode;
+        interactionCode = idxResponse.interactionCode;
 
         if (exchangeCodeForTokens === false) {
           status = IdxStatus.SUCCESS;
