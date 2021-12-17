@@ -1,12 +1,19 @@
 import { Authenticator } from './Authenticator';
+import { RemediationValues } from '../remediators';
 
-export class SecurityQuestionEnrollment extends Authenticator {
-  canVerify(values) {
+export interface SecurityQuestionEnrollValues extends RemediationValues {
+  questionKey?: string;
+  question?: string;
+  answer?: string;
+}
+
+export class SecurityQuestionEnrollment extends Authenticator<SecurityQuestionEnrollValues> {
+  canVerify(values: SecurityQuestionEnrollValues) {
     const { questionKey, question, answer } = values;
-    return (questionKey && answer) || (question && answer);
+    return (!!questionKey && !!answer) || (!!question && !!answer);
   }
 
-  mapCredentials(values) {
+  mapCredentials(values: SecurityQuestionEnrollValues) {
     const { questionKey, question, answer } = values;
     return {
       questionKey: question ? 'custom' : questionKey,

@@ -8,8 +8,9 @@ import { WebauthnEnrollment } from './WebauthnEnrollment';
 import { WebauthnVerification } from './WebauthnVerification';
 import { IdxRemediation } from '../types/idx-js';
 import { AuthenticatorKey } from '../types';
+import { RemediationValues } from '../remediators';
 
-export function getAuthenticator(remediation: IdxRemediation): Authenticator {
+export function getAuthenticator(remediation: IdxRemediation): Authenticator<RemediationValues> {
   const { relatesTo: { value } = {} } = remediation;
   switch (value.key) {
     case AuthenticatorKey.OKTA_PASSWORD:

@@ -6,3 +6,19 @@ export * from './SecurityQuestionEnrollment';
 export * from './SecurityQuestionVerification';
 export * from './WebauthnEnrollment';
 export * from './WebauthnVerification';
+
+import { RemediationValues } from '../remediators';
+import { OktaPasswordInputValues } from './OktaPassword';
+import { SecurityQuestionEnrollValues } from './SecurityQuestionEnrollment';
+import { SecurityQuestionVerificationValues } from './SecurityQuestionVerification';
+import { VerificationCodeValues } from './VerificationCodeAuthenticator';
+import { WebauthnEnrollValues } from './WebauthnEnrollment';
+import { WebauthnVerificationValues } from './WebauthnVerification';
+
+export type AuthenticatorValues = RemediationValues
+  & OktaPasswordInputValues
+  & SecurityQuestionEnrollValues
+  & SecurityQuestionVerificationValues
+  & VerificationCodeValues
+  & WebauthnEnrollValues
+  & WebauthnVerificationValues;

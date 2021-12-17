@@ -1,12 +1,18 @@
 import { Authenticator } from './Authenticator';
+import { RemediationValues } from '../remediators';
 
-export class WebauthnEnrollment extends Authenticator {
-  canVerify(values) {
+export interface WebauthnEnrollValues extends RemediationValues {
+  clientData?: string;
+  attestation?: string;
+}
+
+export class WebauthnEnrollment extends Authenticator<WebauthnEnrollValues> {
+  canVerify(values: WebauthnEnrollValues) {
     const { clientData, attestation } = values;
-    return (clientData && attestation);
+    return (!!clientData && !!attestation);
   }
 
-  mapCredentials(values) {
+  mapCredentials(values: WebauthnEnrollValues) {
     const { clientData, attestation } = values;
     return {
       clientData,
