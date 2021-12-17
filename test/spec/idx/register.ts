@@ -2018,6 +2018,9 @@ describe('idx/register', () => {
             label: 'Security Question',
             value: AuthenticatorKey.SECURITY_QUESTION
           }, {
+            label: 'Okta Verify',
+            value: AuthenticatorKey.OKTA_VERIFY
+          }, {
             label: 'Security Key or Biometric',
             value: AuthenticatorKey.WEBAUTHN
           }]
