@@ -16,7 +16,7 @@ import assert from 'assert';
 import TestApp from '../pageobjects/TestApp';
 import OktaHome from '../pageobjects/OktaHome';
 import { flows, openImplicit, openPKCE } from '../util/appUtils';
-import { loginDirect } from '../util/loginUtils';
+import { loginDirect, loginRedirect } from '../util/loginUtils';
 import { openOktaHome, switchToMainWindow } from '../util/browserUtils';
 
 
@@ -61,7 +61,7 @@ describe('E2E token flows', () => {
           scopes
         }, options);
         (flow === 'pkce') ? await openPKCE(options) : await openImplicit(options);
-        await loginDirect();
+        await loginRedirect(flow);
       }
 
       it('can renew the access token', async () => {

@@ -63,8 +63,7 @@
       "program": "${workspaceRoot}/test/e2e/node_modules/@wdio/cli/bin/wdio.js",
       "console": "integratedTerminal",
       "env": {
-        "DEBUG": "1",
-        "ORG_OIE_ENABLED": "1"
+        "DEBUG": "1"
       }
     },
 

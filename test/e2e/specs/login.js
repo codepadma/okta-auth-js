@@ -63,7 +63,7 @@ describe('E2E login', () => {
 
       it('can login using redirect', async () => {
         await bootstrap();
-        await loginRedirect();
+        await loginRedirect(flow);
         await TestApp.getUserInfo();
         await TestApp.assertUserInfo();
         await TestApp.logoutRedirect();
