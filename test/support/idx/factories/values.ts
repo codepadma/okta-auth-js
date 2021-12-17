@@ -122,3 +122,10 @@ export const PasscodeValueFactory = IdxValueFactory.params({
   'name': 'passcode',
   'label': 'Enter code',
 });
+
+export const WebauthnMethodTypeValueFactory = IdxValueFactory.params({
+  name: 'methodType',
+  required: false,
+  value: 'webauthn',
+  mutable: false
+});

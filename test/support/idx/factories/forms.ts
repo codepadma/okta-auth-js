@@ -23,7 +23,8 @@ import {
   LastNameValueFactory,
   EmailValueFactory,
   PasscodeValueFactory,
-  OtpMethodTypeValueFactory
+  OtpMethodTypeValueFactory,
+  WebauthnMethodTypeValueFactory
 } from './values';
 
 export const IdxFormFactory = Factory.define<IdxForm>(() => {
@@ -72,6 +73,15 @@ export const SecurityQuestionAuthenticatorFormFactory = IdxFormFactory.params({
     IdValueFactory.build({
       value: 'id-security-question-authenticator'
     })
+  ]
+});
+
+export const WebauthnAuthenticatorFormFactory = IdxFormFactory.params({
+  value: [
+    IdValueFactory.build({
+      value: 'id-webauthn-authenticator'
+    }),
+    WebauthnMethodTypeValueFactory.build()
   ]
 });
 
