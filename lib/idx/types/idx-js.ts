@@ -121,6 +121,8 @@ export interface IdxContext {
     type: string;
     value: Record<string, unknown>;
   };
+  success?: IdxRemediation;
+  failure?: IdxRemediation;
 }
 
 export interface IdxMessage {
@@ -159,18 +161,6 @@ export interface IdxActions {
   [key: string]: Function;
 }
 
-export interface IdxContext {
-  stateHandle?: string;
-  messages?: IdxMessages;
-  user?: {
-    value: {
-      identifier: string;
-    };
-  };
-  success?: IdxRemediation;
-  failure?: IdxRemediation;
-}
-
 // Object returned from idx-js
 export interface IdxResponse {
   proceed: (remediationName: string, params: unknown) => Promise<IdxResponse>;
@@ -178,7 +168,6 @@ export interface IdxResponse {
   rawIdxState: RawIdxResponse;
   interactionCode?: string;
   actions: IdxActions;
-  context: IdxContext;
   toPersist: {
     interactionHandle?: string;
   };

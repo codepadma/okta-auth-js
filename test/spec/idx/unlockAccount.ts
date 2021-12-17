@@ -752,7 +752,7 @@ describe('/idx/unlockAccout', () => {
     
         const inputValues = {
           username: 'myname',
-          authenticator: AuthenticatorKey.OKTA_VERIFY_APP
+          authenticator: AuthenticatorKey.OKTA_VERIFY
         };
     
         res = await unlockAccount(authClient, inputValues);
@@ -808,7 +808,7 @@ describe('/idx/unlockAccout', () => {
 
         const inputValues = {
           username: 'myname',
-          authenticator: AuthenticatorKey.OKTA_VERIFY_APP
+          authenticator: AuthenticatorKey.OKTA_VERIFY
         };
     
         let res = await unlockAccount(authClient, inputValues);
@@ -901,7 +901,7 @@ describe('/idx/unlockAccout', () => {
 
         const inputValues = {
           username: 'myname',
-          authenticator: AuthenticatorKey.OKTA_VERIFY_APP,
+          authenticator: AuthenticatorKey.OKTA_VERIFY,
           verificationCode: 'bad-passcode'
         };
     
