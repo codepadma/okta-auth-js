@@ -22,7 +22,6 @@ import {
   ChallengeAuthenticatorValues,
   AuthenticatorVerificationDataValues
 } from './remediators';
-import { getFlowSpecification } from './flow';
 import { AuthSdkError } from '../errors';
 import { 
   OktaAuth, 
@@ -41,11 +40,13 @@ export type AccountUnlockOptions = IdxOptions
   & AuthenticatorVerificationDataValues;
 
 export async function unlockAccount(
-  authClient: OktaAuth, options: AccountUnlockOptions
+  authClient: OktaAuth, options: AccountUnlockOptions = {}
 ): Promise<IdxTransaction> {
+  options.flow = 'unlockAccount';
+
   // Only check at the beginning of the transaction
   if (!hasSavedInteractionHandle(authClient)) {
-    const { enabledFeatures } = await startTransaction(authClient, { flow: 'unlockAccount', ...options });
+    const { enabledFeatures } = await startTransaction(authClient, { ...options });
     if (enabledFeatures && !enabledFeatures.includes(IdxFeature.ACCOUNT_UNLOCK)) {
       const error = new AuthSdkError(
         'Self Service Account Unlock is not supported based on your current org configuration.'
@@ -54,12 +55,5 @@ export async function unlockAccount(
     }
   }
 
-  const flowSpec = getFlowSpecification(authClient, 'unlockAccount');
-  return run(
-    authClient, 
-    { 
-      ...options,
-      ...flowSpec,
-    }
-  );
+  return run(authClient, { ...options });
 }

@@ -41,6 +41,7 @@ export function getFlowSpecification(oktaAuth: OktaAuth, flow: FlowIdentifier = 
     case 'unlockAccount':
       remediators = AccountUnlockFlow;
       flowMonitor = new AccountUnlockFlowMonitor(oktaAuth);
+      withCredentials = false;
       break;
     default:
       // authenticate

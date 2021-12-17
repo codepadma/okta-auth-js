@@ -159,13 +159,12 @@ export async function run(
         terminal,
         canceled,
         messages: messagesFromResp,
-      } = await remediate(idxResponse, values, { remediators, actions, flowMonitor });
+      } = await remediate(idxResponse, values, { remediators, actions, flowMonitor, flow });
       idxResponse = idxResponseFromResp || idxResponse;
 
       // Track fields from remediation response
       nextStep = nextStepFromResp;
       messages = messagesFromResp;
-      idxResponse = idxResponseFromResp;
 
       // Save intermediate idx response in storage to reduce introspect call
       if (nextStep) {
