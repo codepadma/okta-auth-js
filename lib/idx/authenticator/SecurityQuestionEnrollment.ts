@@ -10,7 +10,7 @@ export interface SecurityQuestionEnrollValues extends RemediationValues {
 export class SecurityQuestionEnrollment extends Authenticator<SecurityQuestionEnrollValues> {
   canVerify(values: SecurityQuestionEnrollValues) {
     const { questionKey, question, answer } = values;
-    return (!!questionKey && !!answer) || (!!question && !!answer);
+    return !!(questionKey && answer) || !!(question && answer);
   }
 
   mapCredentials(values: SecurityQuestionEnrollValues) {

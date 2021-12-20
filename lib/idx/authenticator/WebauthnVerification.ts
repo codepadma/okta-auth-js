@@ -10,7 +10,7 @@ export interface WebauthnVerificationValues extends RemediationValues {
 export class WebauthnVerification extends Authenticator<WebauthnVerificationValues> {
   canVerify(values: WebauthnVerificationValues) {
     const { clientData, authenticatorData, signatureData } = values;
-    return (!!clientData && !!authenticatorData && !!signatureData);
+    return !!(clientData && authenticatorData && signatureData);
   }
 
   mapCredentials(values: WebauthnVerificationValues) {

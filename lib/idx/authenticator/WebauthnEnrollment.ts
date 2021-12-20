@@ -9,7 +9,7 @@ export interface WebauthnEnrollValues extends RemediationValues {
 export class WebauthnEnrollment extends Authenticator<WebauthnEnrollValues> {
   canVerify(values: WebauthnEnrollValues) {
     const { clientData, attestation } = values;
-    return (!!clientData && !!attestation);
+    return !!(clientData && attestation);
   }
 
   mapCredentials(values: WebauthnEnrollValues) {
