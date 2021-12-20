@@ -83,8 +83,10 @@
             document.getElementById('retry-button').style.display = null;
           };
 
-          onInit();
-          askCredentials();
+          document.addEventListener('DOMContentLoaded', () => {
+            onInit();
+            askCredentials();
+          });
         </script>
       {{/challengeData}}
       
