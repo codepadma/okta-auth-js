@@ -10,7 +10,7 @@
  * See the License for the specific language governing permissions and limitations under the License.
  */
 
-// Utils to convert beyween string and ArrayBuffer
+// Utils to convert between string and ArrayBuffer
 const CryptoUtil = {
   strToBin: function(str) {
     return Uint8Array.from(atob(this.base64UrlSafeToBase64(str)), c => c.charCodeAt(0));
