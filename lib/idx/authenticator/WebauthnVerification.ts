@@ -1,7 +1,6 @@
 import { Authenticator } from './Authenticator';
-import { RemediationValues } from '../remediators';
 
-export interface WebauthnVerificationValues extends RemediationValues {
+export interface WebauthnVerificationValues {
   clientData?: string;
   authenticatorData?: string;
   signatureData?: string;

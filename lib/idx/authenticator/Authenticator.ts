@@ -1,4 +1,3 @@
-import { RemediationValues } from '../remediators';
 import { IdxAuthenticator, IdxRemediationValue } from '../types/idx-js';
 
 

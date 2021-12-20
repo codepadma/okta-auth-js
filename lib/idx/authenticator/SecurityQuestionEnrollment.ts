@@ -1,7 +1,6 @@
 import { Authenticator } from './Authenticator';
-import { RemediationValues } from '../remediators';
 
-export interface SecurityQuestionEnrollValues extends RemediationValues {
+export interface SecurityQuestionEnrollValues {
   questionKey?: string;
   question?: string;
   answer?: string;

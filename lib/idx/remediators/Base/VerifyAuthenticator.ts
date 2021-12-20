@@ -16,12 +16,12 @@ import { getAuthenticator, Authenticator, AuthenticatorValues } from '../../auth
 import { IdxRemediation, IdxContext } from '../../types/idx-js';
 import { NextStep } from '../../types';
 
-export type VerifyAuthenticatorValues = AuthenticatorValues;
+export type VerifyAuthenticatorValues = AuthenticatorValues & RemediationValues;
 
 // Base class - DO NOT expose static remediationName
 export class VerifyAuthenticator extends Remediator {
 
-  authenticator: Authenticator<RemediationValues>;
+  authenticator: Authenticator<VerifyAuthenticatorValues>;
   values: VerifyAuthenticatorValues;
 
   map = {

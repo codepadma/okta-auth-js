@@ -1,7 +1,6 @@
 import { Authenticator } from './Authenticator';
-import { RemediationValues } from '../remediators';
 
-export interface OktaPasswordInputValues extends RemediationValues {
+export interface OktaPasswordInputValues {
   password?: string;
 }
 
