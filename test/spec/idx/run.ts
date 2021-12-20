@@ -14,7 +14,6 @@
 import { run } from '../../../lib/idx/run';
 import { IdxStatus } from '../../../lib/idx/types';
 import { IdxResponseFactory } from '@okta/test.support/idx';
-import { AuthSdkError } from '../../../lib/errors';
 
 jest.mock('../../../lib/idx/transactionMeta', () => {
   return {
