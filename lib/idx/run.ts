@@ -26,7 +26,7 @@ import {
   NextStep,
   FlowIdentifier,
 } from '../types';
-import { IdxResponse, IdxRemediation } from './types/idx-js';
+import { IdxResponse, IdxRemediation, isIdxResponse } from './types/idx-js';
 import { getSavedTransactionMeta } from './transactionMeta';
 import { ProceedOptions  } from './proceed';
 
@@ -211,9 +211,16 @@ export async function run(
       }
     }
   } catch (err) {
-    error = err;
-    status = IdxStatus.FAILURE;
-    shouldClearTransaction = true;
+    // current version of idx-js will throw/reject IDX responses. Handle these differently than regular errors
+    if (isIdxResponse(err)) {
+      error = err;
+      status = IdxStatus.FAILURE;
+      shouldClearTransaction = true;
+    } else {
+      // error is not an IDX response, throw it like a regular error
+      throw err;
+    }
+
   }
 
   if (shouldClearTransaction) {
