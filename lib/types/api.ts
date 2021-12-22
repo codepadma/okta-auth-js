@@ -203,6 +203,11 @@ export interface FeaturesAPI {
   isIE11OrLess(): boolean;
 }
 
+export interface CryptoAPI {
+  base64UrlToBuffer(b64u: string): Uint8Array;
+  bufferToBase64Url(bin: Uint8Array): string;
+}
+
 export interface SupportsCodeFlow {
   useInteractionCodeFlow?: boolean;
 }

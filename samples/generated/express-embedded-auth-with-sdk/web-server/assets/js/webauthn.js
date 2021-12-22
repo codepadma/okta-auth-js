@@ -10,18 +10,6 @@
  * See the License for the specific language governing permissions and limitations under the License.
  */
 
-// Utils to convert between string and ArrayBuffer
-const CryptoUtil = {
-  strToBin: function(str) {
-    return Uint8Array.from(atob(this.base64UrlSafeToBase64(str)), c => c.charCodeAt(0));
-  },
-  base64UrlSafeToBase64: function(str) {
-    return str.replace(new RegExp('_', 'g'), '/').replace(new RegExp('-', 'g'), '+');
-  },
-  binToStr: function(bin) {
-    return btoa(new Uint8Array(bin).reduce((s, byte) => s + String.fromCharCode(byte), ''));
-  },
-};
 
 // Get known credentials from list of enrolled authenticators
 const getEnrolledCredentials = (authenticatorEnrollments = []) => {
@@ -30,7 +18,7 @@ const getEnrolledCredentials = (authenticatorEnrollments = []) => {
     if (enrollement.key === 'webauthn') {
       credentials.push({
         type: 'public-key',
-        id: CryptoUtil.strToBin(enrollement.credentialId),
+        id: OktaAuth.crypto.base64UrlToBuffer(enrollement.credentialId),
       });
     }
   });
@@ -44,11 +32,11 @@ const buildCredentialCreationOptions = (activationData, authenticatorEnrollments
     publicKey: {
       rp: activationData.rp,
       user: {
-        id: CryptoUtil.strToBin(activationData.user.id),
+        id: OktaAuth.crypto.base64UrlToBuffer(activationData.user.id),
         name: activationData.user.name,
         displayName: activationData.user.displayName
       },
-      challenge: CryptoUtil.strToBin(activationData.challenge),
+      challenge: OktaAuth.crypto.base64UrlToBuffer(activationData.challenge),
       pubKeyCredParams: activationData.pubKeyCredParams,
       attestation: activationData.attestation,
       authenticatorSelection: activationData.authenticatorSelection,
@@ -62,7 +50,7 @@ const buildCredentialCreationOptions = (activationData, authenticatorEnrollments
 const buildCredentialRequestOptions = (challengeData, authenticatorEnrollments) => {
   return {
     publicKey: {
-      challenge: CryptoUtil.strToBin(challengeData.challenge),
+      challenge: OktaAuth.crypto.base64UrlToBuffer(challengeData.challenge),
       userVerification: challengeData.userVerification,
       allowCredentials: getEnrolledCredentials(authenticatorEnrollments),
     }
@@ -73,8 +61,8 @@ const buildCredentialRequestOptions = (challengeData, authenticatorEnrollments) 
 // https://developer.mozilla.org/en-US/docs/Web/API/AuthenticatorAttestationResponse
 const getAttestation = (credential) => {
   const id = credential.id;
-  const clientData = CryptoUtil.binToStr(credential.response.clientDataJSON);
-  const attestation = CryptoUtil.binToStr(credential.response.attestationObject);
+  const clientData = OktaAuth.crypto.bufferToBase64Url(credential.response.clientDataJSON);
+  const attestation = OktaAuth.crypto.bufferToBase64Url(credential.response.attestationObject);
   return {
     id,
     clientData,
@@ -86,9 +74,9 @@ const getAttestation = (credential) => {
 // https://developer.mozilla.org/en-US/docs/Web/API/AuthenticatorAssertionResponse
 const getAssertion = (credential) => {
   const id = credential.id;
-  const clientData = CryptoUtil.binToStr(credential.response.clientDataJSON);
-  const authenticatorData = CryptoUtil.binToStr(credential.response.authenticatorData);
-  const signatureData = CryptoUtil.binToStr(credential.response.signature);
+  const clientData = OktaAuth.crypto.bufferToBase64Url(credential.response.clientDataJSON);
+  const authenticatorData = OktaAuth.crypto.bufferToBase64Url(credential.response.authenticatorData);
+  const signatureData = OktaAuth.crypto.bufferToBase64Url(credential.response.signature);
   return {
     id,
     clientData,

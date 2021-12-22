@@ -27,6 +27,7 @@ import {
   RefreshToken,
   TokenAPI, 
   FeaturesAPI, 
+  CryptoAPI,
   SignoutAPI, 
   FingerprintAPI,
   UserClaims, 
@@ -83,6 +84,7 @@ import {
 } from './oidc';
 import { isBrowser } from './features';
 import * as features from './features';
+import * as crypto from './crypto';
 import browserStorage from './browser/browserStorage';
 import { 
   toQueryString, 
@@ -133,6 +135,7 @@ class OktaAuth implements SDKInterface, SigninAPI, SignoutAPI {
   session: SessionAPI;
   pkce: PkceAPI;
   static features: FeaturesAPI;
+  static crypto: CryptoAPI;
   features: FeaturesAPI;
   token: TokenAPI;
   _tokenQueue: PromiseQueue;
@@ -722,6 +725,9 @@ class OktaAuth implements SDKInterface, SigninAPI, SignoutAPI {
 
 // Hoist feature detection functions to static type
 OktaAuth.features = OktaAuth.prototype.features = features;
+
+// Hoist crypto utils to static type
+OktaAuth.crypto = crypto;
 
 // Also hoist values and utility functions for CommonJS users
 Object.assign(OktaAuth, {
