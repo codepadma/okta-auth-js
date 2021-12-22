@@ -34,6 +34,7 @@ router.get('/login', (req, res, next) => {
 
       console.log('renderLoginWithWidget: using interaction handle: ', interactionHandle);
       const { clientId, redirectUri, issuer, scopes } = getConfig().webServer.oidc;
+      const { otp } = req.query;
       const widgetConfig = {
         baseUrl: issuer.split('/oauth2')[0],
         clientId: clientId,
@@ -47,6 +48,7 @@ router.get('/login', (req, res, next) => {
         interactionHandle,
         codeChallenge,
         codeChallengeMethod,
+        otp
       };
       res.render('login', {
         siwVersion: '5.14.1',

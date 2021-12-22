@@ -80,6 +80,7 @@ router.get('/login/callback', async (req, res, next) => {
       const { state, otp } = authClient.parseEmailVerifyCallback(search);
       if (authClient.idx.canProceed({ state })) {
         const transaction = await authClient.idx.proceed({ 
+          otp,
           state
         });
         handleTransaction({ req, res, next, authClient, transaction });
