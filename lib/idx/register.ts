@@ -27,7 +27,6 @@ import {
   IdxTransaction, 
   OktaAuth, 
   IdxFeature,
-  IdxStatus,
 } from '../types';
 
 export type RegistrationOptions = IdxOptions 
