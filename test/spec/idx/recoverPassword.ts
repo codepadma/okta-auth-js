@@ -18,10 +18,8 @@ import { IdxActions } from '../../../lib/idx/types/idx-js';
 import {
   IdxResponseFactory,
   IdentifyRemediationFactory,
-  IdentifyResponseFactory,
   IdentifyRecoveryRemediationFactory,
   chainResponses,
-  ReEnrollPasswordAuthenticatorRemediationFactory,
   SelectAuthenticatorAuthenticateRemediationFactory,
   IdxErrorResetPasswordNotAllowedFactory,
   RawIdxResponseFactory,
@@ -31,7 +29,6 @@ import {
   OktaVerifyAuthenticatorOptionFactory,
   PhoneAuthenticatorOptionFactory,
   EmailAuthenticatorOptionFactory,
-  PasswordAuthenticatorVerificationDataRemediationFactory,
   VerifyEmailRemediationFactory,
   ResetAuthenticatorRemediationFactory,
   PasswordAuthenticatorFactory,
@@ -466,7 +463,6 @@ describe('idx/recoverPassword', () => {
         identifyResponse,
         selectAuthenticatorResponseWithPassword,
         verifyPasswordResponse,
-        selectAuthenticatorResponse
       } = testContext;
 
       chainResponses([

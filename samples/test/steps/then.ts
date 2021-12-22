@@ -115,7 +115,7 @@ Then(
 Then(
   /^she sees a page to select authenticator/,
   checkIsOnPage.bind(null, 'Select authenticator')
-)
+);
 
 Then(
   /^the sample shows an error message "(?<message>.+?)" on the Sample App$/,
@@ -125,7 +125,7 @@ Then(
 Then(
   /^password authenticator is not in options/,
   checkIsInAuthenticatorOptions.bind(null, 'okta_password', false)
-)
+);
 
 Then(
   /^she sees a page to challenge her email authenticator$/,
