@@ -293,7 +293,7 @@ describe('idx/run', () => {
       });
     });
 
-    it('catches error when the flow is not supposed to be finished', async () => {
+    it('throws error when the flow is not supposed to be finished', async () => {
       const { authClient } = testContext; 
 
       const flowMonitor = {
@@ -301,30 +301,33 @@ describe('idx/run', () => {
       };
       jest.spyOn(mocked.FlowSpecification, 'getFlowSpecification').mockReturnValue({ remediators: {}, actions: [], flowMonitor });
 
-      jest.spyOn(authClient.transactionManager, 'load');
-      jest.spyOn(authClient.transactionManager, 'clear');
-      jest.spyOn(authClient.token, 'exchangeCodeForTokens');
-
-      const res = await run(authClient);
-      expect(authClient.transactionManager.clear).toHaveBeenCalledWith();
-      expect(authClient.token.exchangeCodeForTokens).not.toHaveBeenCalledWith();
-      expect(res.status).toEqual(IdxStatus.FAILURE);
-      expect(res.error instanceof AuthSdkError).toBeTruthy();
-      expect((res.error as AuthSdkError).message).toEqual('Current flow is not supported, check policy settings in your org.');
+      let didThrow = false;
+      try {
+        await run(authClient);
+      } catch (error) {
+        didThrow = true;
+        expect(error instanceof AuthSdkError).toBeTruthy();
+        expect((error as AuthSdkError).message).toEqual('Current flow is not supported, check policy settings in your org.');
+      }
+      expect(didThrow).toBe(true);
     });
 
-    it('catches errors from exchangeCodeForTokens and clears storage', async () => {
+    it('throws errors from exchangeCodeForTokens', async () => {
       const { authClient } = testContext;
       const error = new Error('threw an error');
 
-      jest.spyOn(authClient.transactionManager, 'load');
-      jest.spyOn(authClient.transactionManager, 'clear');
       jest.spyOn(authClient.token, 'exchangeCodeForTokens').mockImplementation(async () => {
         throw error;
       });
 
-      const res = await run(authClient);
-      expect(authClient.transactionManager.clear).toHaveBeenCalledWith();
+      let didThrow = false;
+      try {
+        await run(authClient);
+      } catch (e) {
+        didThrow = true;
+        expect(e).toEqual(error);
+      }
+      expect(didThrow).toBe(true);
       expect(authClient.token.exchangeCodeForTokens).toHaveBeenCalledWith({
         'clientId': 'meta-clientId',
         'codeVerifier': 'meta-code',
@@ -337,12 +340,6 @@ describe('idx/run', () => {
       },
       {
         'authorizeUrl': 'meta-authorizeUrl'
-      });
-
-      expect(res).toMatchObject({
-        error,
-        nextStep: 'remediate-nextStep',
-        status: IdxStatus.FAILURE,
       });
     });
   });

@@ -29,6 +29,7 @@
         "--runInBand",
         "--no-cache",
         "--collectCoverage=false",
+        "--testTimeout=120000",
         "--config=jest.browser.js",
         "${relativeFile}"
       ],
@@ -44,6 +45,7 @@
         "--runInBand",
         "--no-cache",
         "--collectCoverage=false",
+        "--testTimeout=120000",
         "--config=jest.server.js",
         "${relativeFile}"
       ],

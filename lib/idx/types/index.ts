@@ -100,6 +100,7 @@ export interface IdxTransaction {
 export type IdxOptions = InteractOptions & IntrospectOptions & {
   flow?: FlowIdentifier;
   exchangeCodeForTokens?: boolean;
+  autoRemediate?: boolean;
 };
 
 export interface IdxPollOptions {

@@ -106,7 +106,8 @@ export async function run(
       remediators,
       actions,
       withCredentials,
-      exchangeCodeForTokens
+      exchangeCodeForTokens,
+      autoRemediate
     } = options;
 
     // Only one flow can be operating at a time
@@ -142,7 +143,7 @@ export async function run(
     // Include meta in the transaction response
     meta = metaFromResp;
 
-    if (remediators || actions) {
+    if (autoRemediate !== false && (remediators || actions)) {
       const values: remediators.RemediationValues = { 
         ...options, 
         stateHandle: idxResponse.rawIdxState.stateHandle 

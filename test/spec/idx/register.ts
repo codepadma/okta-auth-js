@@ -282,19 +282,30 @@ describe('idx/register', () => {
         ]
       });
       jest.spyOn(mocked.introspect, 'introspect').mockResolvedValue(identifyResponse);
-      const res = await register(authClient, {});
-      expect(res.status).toBe(IdxStatus.FAILURE);
-      expect(res.error).toBeInstanceOf(AuthSdkError);
-      expect(res.error.errorSummary).toBe('Registration is not supported based on your current org configuration.');
+      
+      let didThrow = false;
+      try {
+        await register(authClient, {});
+      } catch (error) {
+        didThrow = true;
+        expect(error).toBeInstanceOf(AuthSdkError);
+        expect(error.errorSummary).toBe('Registration is not supported based on your current org configuration.');
+      }
+      expect(didThrow).toBe(true);
     });
     it('calls startTransaction, setting flow to "register"', async () => {
       const { authClient } = testContext;
       jest.spyOn(mocked.startTransaction, 'startTransaction').mockReturnValue({ enabledFeatures: [] });
-      const res = await register(authClient, {});
-      expect(res.status).toBe(IdxStatus.FAILURE);
-      expect(res.error).toBeInstanceOf(AuthSdkError);
-      expect(res.error.errorSummary).toBe('Registration is not supported based on your current org configuration.');
-      expect(mocked.startTransaction.startTransaction).toHaveBeenCalledWith(authClient, { flow: 'register' });
+      let didThrow = false;
+      try {
+        await register(authClient, {});
+      } catch (error) {
+        didThrow = true;
+        expect(error).toBeInstanceOf(AuthSdkError);
+        expect(error.errorSummary).toBe('Registration is not supported based on your current org configuration.');
+      }
+      expect(didThrow).toBe(true);
+      expect(mocked.startTransaction.startTransaction).toHaveBeenCalledWith(authClient, { flow: 'register', autoRemediate: false });
     });
     it('presence of identify remediation means activationToken is not supported', async () => {
       const { authClient, transactionMeta } = testContext;
@@ -306,10 +317,16 @@ describe('idx/register', () => {
         ]
       });
       jest.spyOn(mocked.introspect, 'introspect').mockResolvedValue(identifyResponse);
-      const res = await register(authClient, { activationToken: 'fn-activationToken' });
-      expect(res.status).toBe(IdxStatus.FAILURE);
-      expect(res.error).toBeInstanceOf(AuthSdkError);
-      expect(res.error.errorSummary).toBe('activationToken is not supported based on your current org configuration.');
+            
+      let didThrow = false;
+      try {
+        await register(authClient, { activationToken: 'fn-activationToken' });
+      } catch (error) {
+        didThrow = true;
+        expect(error).toBeInstanceOf(AuthSdkError);
+        expect(error.errorSummary).toBe('activationToken is not supported based on your current org configuration.');
+      }
+      expect(didThrow).toBe(true);
     });
     it('with activationToken should not check select-enroll-profile remediation', async () => {
       const { authClient, transactionMeta } = testContext;
